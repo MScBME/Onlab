@@ -1,3 +1,13 @@
-/res/
-/onlab_venv/
-*.pt
+/.onlab_venv/
+
+__pycache__/
+*.pyc
+.venv/
+
+data/raw/*
+data/processed/*
+
+*.mp4
+*.mov
+
+.DS_Store

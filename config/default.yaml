@@ -1,0 +1,8 @@
+video:
+  path: data/raw/clip.mp4
+
+tracking:
+  method: csrt
+
+analysis:
+  smoothing_window: 5
