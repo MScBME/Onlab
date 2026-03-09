@@ -3,13 +3,13 @@ from yt_dlp.postprocessor import FFmpegPostProcessor
 
 # 1. MANUALLY SET THE FFMPEG PATH GLOBALLY
 # This bypasses the check that causes your "Aborting" error
-FFmpegPostProcessor._ffmpeg_location.set("C:/ffmpeg/ffmpeg.exe")
+FFmpegPostProcessor._ffmpeg_location.set("C:/_tools/ffmpeg/ffmpeg-2026-03-01-git-862338fe31-full_build/bin/ffmpeg.exe")
 
 url = "https://www.youtube.com/watch?v=pXxlpmlvcsc"
 
 ydl_opts = {
     "format": "bestvideo+bestaudio/best",
-    "outtmpl": "clip.%(ext)s",
+    "outtmpl": "res/clip.%(ext)s",
     "overwrites": True,
     
     # Use download_ranges for efficient seeking (seconds)

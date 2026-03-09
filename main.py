@@ -6,7 +6,7 @@ from ultralytics import YOLO
 model = YOLO('yolov8n.pt') 
 
 # 2. Open the video file
-video_path = "res/swimmer_video.webm"
+video_path = "res/csik_d2du.mp4"
 cap = cv2.VideoCapture(video_path)
 
 while cap.isOpened():
