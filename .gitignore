@@ -1,4 +1,6 @@
+/res/
 /.onlab_venv/
+*.pt
 
 __pycache__/
 *.pyc
