@@ -8,7 +8,7 @@ def main():
     video_path = "data/raw/clip.mp4" 
     lane_points = [[50, 500], [1060, 501], [1110, 542], [0, 539]]
 
-    loader = VideoLoader(video_path, start_sec=3.0)
+    loader = VideoLoader(video_path, start_sec=3.8)
     tracker = SwimmerTracker(lane_points)
 
     xs = []
