@@ -5,10 +5,10 @@ from src.analysis.speed import compute_speed
 from src.visualization.plots import plot_speed
 
 def main():
-    video_path = "data/raw/clip.mp4" 
-    lane_points = [[50, 500], [1060, 501], [1110, 542], [0, 539]]
+    video_path = "data/raw/csik_d2du.mp4" 
+    lane_points = [[0, 772], [84, 725], [1487, 713], [1542, 762]]
 
-    loader = VideoLoader(video_path, start_sec=3.8)
+    loader = VideoLoader(video_path, start_sec=43 * 60 + 23, end_sec=43 * 60 + 36)
     tracker = SwimmerTracker(lane_points)
 
     xs = []

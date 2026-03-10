@@ -1,5 +1,5 @@
 video:
-  path: data/raw/clip.mp4
+  path: data/raw/csik_d2du.mp4
 
 tracking:
   method: csrt
