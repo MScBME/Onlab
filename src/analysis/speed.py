@@ -1,15 +1,20 @@
 import numpy as np
+import cv2
 
-def compute_speed(xs, ys, timestamps):
-    xs = np.array(xs)
-    ys = np.array(ys)
+def compute_speed(xs, ys, timestamps, H):
+    xs = np.array(xs, dtype=np.float32)
+    ys = np.array(ys, dtype=np.float32)
     ts = np.array(timestamps)
 
-    dx = np.diff(xs)
-    dy = np.diff(ys)
+    points_pixel = np.stack((xs, ys), axis=-1).reshape(-1, 1, 2)
+    points_real = cv2.perspectiveTransform(points_pixel, H)
+
+    real_xs = points_real[:, 0, 0]
+
+    dx = np.diff(real_xs)
     dt = np.diff(ts)
 
-    distances = np.sqrt(dx**2 + dy**2)
+    distances = np.abs(dx)
     raw_speeds = distances / dt
 
     window_size = 15 

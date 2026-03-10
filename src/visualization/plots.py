@@ -8,7 +8,7 @@ def plot_speed(times, speeds):
     plt.plot(times, speeds)
 
     plt.xlabel("Time (s)")
-    plt.ylabel("Speed (px/s)")
+    plt.ylabel("Speed (m/s)")
     plt.title("Swimmer speed")
 
     plt.show()

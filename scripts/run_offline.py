@@ -1,12 +1,28 @@
 import cv2
+import numpy as np
 from src.video.loader import VideoLoader
 from src.tracking.swimmer_tracker import SwimmerTracker
 from src.analysis.speed import compute_speed
 from src.visualization.plots import plot_speed
 
 def main():
-    video_path = "data/raw/csik_d2du.mp4" 
-    lane_points = [[0, 772], [84, 725], [1487, 713], [1542, 762]]
+    video_path = "data/raw/csik_d2du.mp4"
+
+    lane_points = np.array([
+        [0, 772],    # bottom left
+        [84, 725],   # top left
+        [1487, 713], # top right
+        [1542, 762]  # bottom right
+    ], dtype=np.float32)
+    
+    real_world_corners = np.array([
+        [0.0, 0.0], 
+        [0.0, 2.5], 
+        [25.0, 2.5], 
+        [25.0, 0.0]
+    ], dtype=np.float32)
+
+    H, _ = cv2.findHomography(lane_points, real_world_corners)
 
     loader = VideoLoader(video_path, start_sec=43 * 60 + 23, end_sec=43 * 60 + 36)
     tracker = SwimmerTracker(lane_points)
@@ -35,7 +51,9 @@ def main():
         ts.append(timestamp)
 
         cv2.circle(frame, (int(x), int(y)), 5, (0, 255, 0), -1)
-        cv2.polylines(frame, [tracker.lane_points], isClosed=True, color=(255, 0, 0), thickness=2)
+        
+        pts = np.array(tracker.lane_points, np.int32).reshape((-1, 1, 2))
+        cv2.polylines(frame, [pts], isClosed=True, color=(255, 0, 0), thickness=2)
         
         cv2.imshow("Swimmer Tracking", frame)
 
@@ -45,7 +63,8 @@ def main():
     cv2.destroyAllWindows()
 
     if len(xs) > 15: 
-        smoothed_ts, speeds = compute_speed(xs, ys, ts) 
+        smoothed_ts, speeds = compute_speed(xs, ys, ts, H) 
+        smoothed_ts = smoothed_ts - smoothed_ts[0]
         plot_speed(smoothed_ts, speeds)
     else:
         print("Not enough data collected to plot speed.")
