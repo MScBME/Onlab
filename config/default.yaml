@@ -1,8 +1,0 @@
-video:
-  path: data/raw/csik_d2du.mp4
-
-tracking:
-  method: csrt
-
-analysis:
-  smoothing_window: 5

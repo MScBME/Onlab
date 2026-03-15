@@ -1,0 +1,30 @@
+{
+  "videos": [
+    {
+      "id": "csik_d2du_run1",
+      "description": "Freestyle, lane 3, starting at 43:23",
+      "video_path": "csik_d2du.mp4",
+      "start_sec": 2603.0,
+      "end_sec": 2616.0,
+      "pool_corners": [
+        [0, 772],
+        [84, 725],
+        [1487, 713],
+        [1542, 762]
+      ]
+    },
+    {
+      "id": "another_video_run",
+      "description": "Butterfly, lane 4",
+      "video_path": "butterfly.mp4",
+      "start_sec": 120.5,
+      "end_sec": 145.0,
+      "pool_corners": [
+        [10, 780],
+        [90, 730],
+        [1480, 720],
+        [1550, 770]
+      ]
+    }
+  ]
+}
