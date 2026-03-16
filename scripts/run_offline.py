@@ -6,7 +6,7 @@ from src.video.loader import VideoLoader
 from src.tracking.swimmer_tracker import SwimmerTracker
 from src.analysis.speed import compute_speed
 from src.visualization.plots import plot_speed
-from src.utils.config import load_json
+from src.utils.config import load_json, time_to_seconds
 
 def get_video_data(videos_data, video_id):
     """Finds the specific video in the loaded configuration list."""
@@ -34,8 +34,8 @@ def main():
     raw_video_dir = os.path.join("data", "raw")
     video_path = os.path.join(raw_video_dir, video_data["video_path"])
     
-    start_sec = video_data.get("start_sec", 0.0)
-    end_sec = video_data.get("end_sec", None)
+    start_sec = time_to_seconds(video_data.get("start_time", "00:00:00"))
+    end_sec = time_to_seconds(video_data.get("end_time"))
     
     if "pool_corners" not in video_data:
         print(f"Error: 'pool_corners' missing for video ID '{active_id}'")

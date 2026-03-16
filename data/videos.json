@@ -2,10 +2,9 @@
   "videos": [
     {
       "id": "csik_d2du_run1",
-      "description": "Freestyle, lane 3, starting at 43:23",
       "video_path": "csik_d2du.mp4",
-      "start_sec": 2603.0,
-      "end_sec": 2616.0,
+      "start_time": "00:43:23",
+      "end_time": "00:43:36",
       "pool_corners": [
         [0, 772],
         [84, 725],
@@ -14,16 +13,55 @@
       ]
     },
     {
-      "id": "another_video_run",
-      "description": "Butterfly, lane 4",
-      "video_path": "butterfly.mp4",
-      "start_sec": 120.5,
-      "end_sec": 145.0,
+      "id": "men_freesyle1",
+      "description": "lane 3, right, blue",
+      "video_path": "csik_d2du.mp4",
+      "start_time": "00:07:54",
+      "end_time": "00:08:07",
       "pool_corners": [
-        [10, 780],
-        [90, 730],
-        [1480, 720],
-        [1550, 770]
+        [0, 835],
+        [80, 774],
+        [1617, 817],
+        [1542, 759]
+      ]
+    },
+    {
+      "id": "men_freesyle2",
+      "description": "lane 3, left, blue",
+      "video_path": "csik_d2du.mp4",
+      "start_time": "00:08:11",
+      "end_time": "00:08:24",
+      "pool_corners": [
+        [0, 835],
+        [80, 774],
+        [1617, 817],
+        [1542, 759]
+      ]
+    },
+    {
+      "id": "women_freestyle",
+      "description": "lane 2, left",
+      "video_path": "csik_d2du.mp4",
+      "start_time": "00:40:24",
+      "end_time": "00:40:39",
+      "pool_corners": [
+        [0, 835],
+        [80, 774],
+        [1617, 817],
+        [1542, 759]
+      ]
+    },
+    {
+      "id": "women_backstroke",
+      "description": "lane 4, right, pink",
+      "video_path": "csik_d2du.mp4",
+      "start_time": "01:29:35",
+      "end_time": "01:29:49",
+      "pool_corners": [
+        [0, 772],
+        [83, 724],
+        [1541, 759],
+        [1484, 713]
       ]
     }
   ]
