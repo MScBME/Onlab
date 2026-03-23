@@ -38,10 +38,23 @@ for img_file in [f for f in os.listdir(INPUT_DIR) if f.endswith(".jpg")]:
             px_x, px_y = x_c * w_orig, y_c * h_orig
             
             if cv2.pointPolygonTest(src_pts, (px_x, px_y), False) >= 0:
-                pt = np.array([[[px_x, px_y]]], dtype="float32")
-                new_pt = cv2.perspectiveTransform(pt, M)
-                new_x, new_y = new_pt[0][0][0] / LANE_W, new_pt[0][0][1] / LANE_H
-                lane_labels.append(f"0 {new_x:.6f} {new_y:.6f} {w_b:.6f} {h_b:.6f}")
+                pt_center = np.array([[[px_x, px_y]]], dtype="float32")
+                new_center = cv2.perspectiveTransform(pt_center, M)[0][0]
+                
+                px_w, px_h = w_b * w_orig, h_b * h_orig
+                pt_edge = np.array([[[px_x + px_w/2, px_y + px_h/2]]], dtype="float32")
+                new_edge = cv2.perspectiveTransform(pt_edge, M)[0][0]
+
+                new_x = new_center[0] / LANE_W
+                new_y = new_center[1] / LANE_H
+                
+                new_wb = (abs(new_edge[0] - new_center[0]) * 2) / LANE_W
+                new_hb = (abs(new_edge[1] - new_center[1]) * 2) / LANE_H
+                
+                new_wb = min(new_wb, 1.0)
+                new_hb = min(new_hb, 1.0)
+                
+                lane_labels.append(f"0 {new_x:.6f} {new_y:.6f} {new_wb:.6f} {new_hb:.6f}")
 
         if lane_labels:
             base_name = os.path.splitext(img_file)[0]
