@@ -1,5 +1,4 @@
 import cv2
-import numpy as np
 import json
 import os
 
@@ -7,7 +6,7 @@ with open('races.json', 'r') as f:
     race_data = json.load(f)
 
 VIDEO_PATH = race_data["video_name"]
-RAW_FRAMES_DIR = "1_raw_frames"
+RAW_FRAMES_DIR = "data/1_raw_frames"
 
 def time_to_sec(t_str):
     h, m, s = map(int, t_str.split(':'))

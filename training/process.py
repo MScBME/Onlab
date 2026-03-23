@@ -6,8 +6,8 @@ import os
 with open('../data/lane_coordinates.json', 'r') as f:
     lane_config = json.load(f)
 
-INPUT_DIR = "1_raw_frames"
-OUTPUT_DIR = "2_processed_dataset"
+INPUT_DIR = "data/1_raw_frames"
+OUTPUT_DIR = "data/2_processed_dataset"
 LANE_W, LANE_H = 256, 1024
 DST_PTS = np.array([[0, 0], [LANE_W, 0], [LANE_W, LANE_H], [0, LANE_H]], dtype="float32")
 
