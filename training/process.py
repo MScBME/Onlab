@@ -3,7 +3,7 @@ import numpy as np
 import json
 import os
 
-with open('lanes.json', 'r') as f:
+with open('../data/lane_coordinates.json', 'r') as f:
     lane_config = json.load(f)
 
 INPUT_DIR = "1_raw_frames"
