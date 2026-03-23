@@ -1,0 +1,7 @@
+{
+    "video_name": "pool_video.mp4",
+    "events": [
+        {"id": 1, "start_time": "00:07:54"},
+        {"id": 2, "start_time": "00:15:20"}
+    ]
+}
