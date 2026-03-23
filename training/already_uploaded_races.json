@@ -1,0 +1,10 @@
+{
+    "video_name": "../data/raw/csik_d2du.mp4",
+    "events": [
+        {"id": 1, "start_time": "00:45:14"},
+        {"id": 2, "start_time": "00:46:42"},
+        {"id": 3, "start_time": "00:51:42"},
+        {"id": 4, "start_time": "01:16:54"},
+        {"id": 5, "start_time": "01:26:54"}
+    ]
+}
