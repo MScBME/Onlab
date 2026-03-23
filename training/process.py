@@ -26,6 +26,8 @@ for img_file in [f for f in os.listdir(INPUT_DIR) if f.endswith(".jpg")]:
         labels = [line.strip().split() for line in f.readlines()]
 
     for lane in lane_config["lanes"]:
+        if lane["id"] > 6:
+            continue
         src_pts = np.array(lane["coordinates"], dtype="float32")
         M = cv2.getPerspectiveTransform(src_pts, DST_PTS)
         warped_lane = cv2.warpPerspective(img, M, (LANE_W, LANE_H))
@@ -37,8 +39,8 @@ for img_file in [f for f in os.listdir(INPUT_DIR) if f.endswith(".jpg")]:
             
             if cv2.pointPolygonTest(src_pts, (px_x, px_y), False) >= 0:
                 pt = np.array([[[px_x, px_y]]], dtype="float32")
-                new_pt = cv2.perspectiveTransform(pt, M)[0][0]
-                new_x, new_y = new_pt[0] / LANE_W, new_pt[1] / LANE_H
+                new_pt = cv2.perspectiveTransform(pt, M)
+                new_x, new_y = new_pt[0][0][0] / LANE_W, new_pt[0][0][1] / LANE_H
                 lane_labels.append(f"0 {new_x:.6f} {new_y:.6f} {w_b:.6f} {h_b:.6f}")
 
         if lane_labels:
