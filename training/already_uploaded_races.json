@@ -1,10 +1,15 @@
 {
     "video_name": "../data/raw/csik_d2du.mp4",
     "events": [
-        {"id": 1, "start_time": "00:45:14"},
-        {"id": 2, "start_time": "00:46:42"},
-        {"id": 3, "start_time": "00:51:42"},
-        {"id": 4, "start_time": "01:16:54"},
-        {"id": 5, "start_time": "01:26:54"}
+        {"id": 1, "start_time": "00:13:35"},
+        {"id": 2, "start_time": "00:19:43"},
+        {"id": 3, "start_time": "00:19:55"},
+        {"id": 4, "start_time": "00:25:03"},
+        {"id": 5, "start_time": "00:45:14"},
+        {"id": 6, "start_time": "00:46:42"},
+        {"id": 7, "start_time": "00:49:45"},
+        {"id": 8, "start_time": "00:51:42"},
+        {"id": 9, "start_time": "01:16:54"},
+        {"id": 10, "start_time": "01:26:54"}
     ]
 }
