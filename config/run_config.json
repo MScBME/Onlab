@@ -1,5 +1,7 @@
 {
   "active_video_id": "csik_d2du_run1",
   "video_config_path": "data/videos.json",
-  "show_tracking": true
+  "show_tracking": true,
+  "model_path": "models/swimmer.pt",
+  "confidence_threshold": 0.5
 }

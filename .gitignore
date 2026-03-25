@@ -1,16 +1,40 @@
-/res/
-/.onlab_venv/
-*.pt
-
+# Python
 __pycache__/
 *.pyc
+*.pyo
 .venv/
+/.onlab_venv/
 
+# Data (large files, keep in local only)
 data/raw/*
 data/processed/*
 training/data/*
+training/dataset/*
+training/runs/*
 
+# Model files (keep models/ dir, ignore weights)
+models/*
+!models/.gitkeep
+*.onnx
+
+# Media
 *.mp4
 *.mov
 
+# Secrets
+.env
+
+# OS
 .DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Legacy
+/res/
+
+# Claude Code
+.claude/
+CLAUDE.md

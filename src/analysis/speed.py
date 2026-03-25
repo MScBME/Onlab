@@ -1,13 +1,13 @@
 import numpy as np
 import cv2
 
-def compute_speed(xs, ys, timestamps, H):
+def compute_speed(xs, ys, timestamps, h):
     xs = np.array(xs, dtype=np.float32)
     ys = np.array(ys, dtype=np.float32)
     ts = np.array(timestamps)
 
     points_pixel = np.stack((xs, ys), axis=-1).reshape(-1, 1, 2)
-    points_real = cv2.perspectiveTransform(points_pixel, H)
+    points_real = cv2.perspectiveTransform(points_pixel, h)
 
     real_xs = points_real[:, 0, 0]
 

@@ -2,6 +2,10 @@ import cv2
 import numpy as np
 import sys
 import os
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJECT_ROOT)
+
 from src.video.loader import VideoLoader
 from src.tracking.swimmer_tracker import SwimmerTracker
 from src.analysis.speed import compute_speed
@@ -18,9 +22,9 @@ def get_video_data(videos_data, video_id):
     sys.exit(1)
 
 def main():
-    settings = load_json("config/run_config.json")
+    settings = load_json(os.path.join(PROJECT_ROOT, "config", "run_config.json"))
     active_id = settings.get("active_video_id")
-    videos_path = settings.get("video_config_path", "data/videos.json")
+    videos_path = os.path.join(PROJECT_ROOT, settings.get("video_config_path", "data/videos.json"))
     show_tracking = settings.get("show_tracking", True)
 
     if not active_id:
@@ -31,7 +35,7 @@ def main():
     videos_data = load_json(videos_path)
     video_data = get_video_data(videos_data, active_id)
 
-    raw_video_dir = os.path.join("data", "raw")
+    raw_video_dir = os.path.join(PROJECT_ROOT, "data", "raw")
     video_path = os.path.join(raw_video_dir, video_data["video_path"])
     
     start_sec = time_to_seconds(video_data.get("start_time", "00:00:00"))
