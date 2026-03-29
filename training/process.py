@@ -3,16 +3,23 @@ import numpy as np
 import json
 import os
 
-with open('../data/lane_coordinates.json', 'r') as f:
+with open("../data/lane_coordinates.json", 'r') as f:
     lane_config = json.load(f)
+
+frames_meta_dict = {}
+with open("frames_metadata.jsonl", 'r') as f:
+    for line in f:
+        data = json.loads(line.strip())
+        frames_meta_dict[data["filename"]] = data
 
 INPUT_DIR = "data/1_raw_frames"
 OUTPUT_DIR = "data/2_processed_dataset"
 LANE_W, LANE_H = 256, 1024
 DST_PTS = np.array([[0, 0], [LANE_W, 0], [LANE_W, LANE_H], [0, LANE_H]], dtype="float32")
+DEFAULT_START_LANE = 1
+DEFAULT_END_LANE = 6
 
-if not os.path.exists(OUTPUT_DIR): 
-    os.makedirs(OUTPUT_DIR)
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 for img_file in [f for f in os.listdir(INPUT_DIR) if f.endswith(".jpg")]:
     img = cv2.imread(os.path.join(INPUT_DIR, img_file))
@@ -25,8 +32,13 @@ for img_file in [f for f in os.listdir(INPUT_DIR) if f.endswith(".jpg")]:
     with open(label_path, 'r') as f:
         labels = [line.strip().split() for line in f.readlines()]
 
+    img_meta = frames_meta_dict.get(img_file, {})
+    
+    start_lane = img_meta.get("start_lane", DEFAULT_START_LANE)
+    end_lane = img_meta.get("end_lane", DEFAULT_END_LANE)
+
     for lane in lane_config["lanes"]:
-        if lane["id"] > 6:
+        if not (start_lane <= lane["id"] <= end_lane):
             continue
         src_pts = np.array(lane["coordinates"], dtype="float32")
         M = cv2.getPerspectiveTransform(src_pts, DST_PTS)

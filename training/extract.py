@@ -55,7 +55,7 @@ with open(OUTPUT_METADATA_FILE, 'a') as meta_file:
                     image_path = f"{RAW_FRAMES_DIR}/{base_filename}.jpg"
                     cv2.imwrite(image_path, frame)
                     
-                    frame_meta = {k: v for k, v in event.items() if k not in ("id", "start_time")}
+                    frame_meta = {k: v for k, v in event.items() if k in ("video_id", "gender", "stroke")}
                     frame_meta["filename"] = f"{base_filename}.jpg"
                     meta_file.write(json.dumps(frame_meta) + "\n")
                 
