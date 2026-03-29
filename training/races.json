@@ -1,4 +1,9 @@
 {
-    "video_name": "../data/raw/csik_d2du.mp4",
-    "events": []
+    "videos": {
+        "d2du": "../data/raw/csik_d2du.mp4",
+        "d3du": "../data/raw/csik_d3du.mp4"
+    },
+    "events": [
+        {"id": 1, "video_id": "d2du", "gender": "male", "stroke": "freestyle", "start_time": "00:13:35"}
+    ]
 }
