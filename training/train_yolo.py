@@ -32,7 +32,8 @@ def main():
     model.train(
         data=DATASET_YAML,
         epochs=50,
-        imgsz=640,
+        imgsz=1024,
+        rect=True,
         batch=16,
         project=RUNS_DIR,
         name="swimmer",
