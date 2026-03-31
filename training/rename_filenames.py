@@ -30,6 +30,6 @@ def clean_dynamic_filenames(directory):
     
     print(f"\nDone! Successfully cleaned {count} files.")
 
-folder_path = 'C:/path/to/your/folder'
+folder_path = "data/1_raw_frames"
 
 clean_dynamic_filenames(folder_path)
