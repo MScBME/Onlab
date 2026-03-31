@@ -9,6 +9,7 @@ __pycache__/
 data/raw/*
 data/processed/*
 training/data/*
+training/runs/*
 
 *.mp4
 *.mov
