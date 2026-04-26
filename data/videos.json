@@ -1,132 +1,33 @@
 {
   "videos": [
     {
-      "id": "csik_d2du_run1",
-      "video_path": "csik_d2du.mp4",
-      "start_time": "00:43:23",
-      "end_time": "00:43:50",
-      "pool_corners": [
-        [0, 772],
-        [84, 725],
-        [1487, 713],
-        [1542, 762]
+      "id": "d2du",
+      "path": "csik_d2du.mp4",
+      "lanes": [
+        {"id": 1, "coordinates": [[0, 912], [104, 834], [1621, 821], [1707, 894]]},
+        {"id": 2, "coordinates": [[0, 834], [84, 778], [1542, 759], [1621, 821]]},
+        {"id": 3, "coordinates": [[0, 773], [88, 725], [1482, 716], [1542, 759]]},
+        {"id": 4, "coordinates": [[88, 725], [162, 685], [1429, 675], [1482, 716]]},
+        {"id": 5, "coordinates": [[162, 685], [224, 651], [1383, 641], [1429, 675]]},
+        {"id": 6, "coordinates": [[224, 651], [279, 623], [1347, 614], [1383, 641]]},
+        {"id": 7, "coordinates": [[279, 623], [324, 598], [1319, 590], [1347, 614]]},
+        {"id": 8, "coordinates": [[324, 598], [363, 577], [1297, 569], [1319, 590]]},
+        {"id": 9, "coordinates": [[363, 577], [390, 560], [1282, 553], [1297, 569]]}
       ]
     },
     {
-      "id": "men_freesyle",
-      "description": "lane 3, right, blue",
-      "video_path": "csik_d2du.mp4",
-      "start_time": "00:07:54",
-      "end_time": "00:08:07",
-      "pool_corners": [
-        [0, 835],
-        [80, 774],
-        [1542, 759],
-        [1617, 817]
-      ]
-    },
-    {
-      "id": "men_freesyle2",
-      "description": "lane 3, left, blue",
-      "video_path": "csik_d2du.mp4",
-      "start_time": "00:08:11",
-      "end_time": "00:08:24",
-      "pool_corners": [
-        [0, 835],
-        [80, 774],
-        [1542, 759],
-        [1617, 817]
-      ]
-    },
-    {
-      "id": "men_backstroke",
-      "description": "lane 3",
-      "video_path": "csik_d2du.mp4",
-      "start_time": "01:12:41",
-      "end_time": "01:12:57",
-      "pool_corners": [
-        [0, 835],
-        [80, 774],
-        [1542, 759],
-        [1617, 817]
-      ]
-    },
-    {
-      "id": "men_breaststroke",
-      "description": "lane 3",
-      "video_path": "csik_d2du.mp4",
-      "start_time": "01:36:52",
-      "end_time": "01:37:11",
-      "pool_corners": [
-        [0, 835],
-        [80, 774],
-        [1542, 759],
-        [1617, 817]
-      ]
-    },
-    {
-      "id": "men_butterfly",
-      "description": "lane 3",
-      "video_path": "csik_d2du.mp4",
-      "start_time": "01:52:50",
-      "end_time": "01:53:01",
-      "pool_corners": [
-        [0, 835],
-        [80, 774],
-        [1542, 759],
-        [1617, 817]
-      ]
-    },
-    {
-      "id": "women_freestyle_TODO",
-      "description": "lane 2, left",
-      "video_path": "csik_d2du.mp4",
-      "start_time": "00:40:24",
-      "end_time": "00:40:39",
-      "pool_corners": [
-        [0, 835],
-        [80, 774],
-        [1542, 759],
-        [1617, 817]
-      ]
-    },
-    {
-      "id": "women_breaststroke",
-      "description": "lane 3, with stop",
-      "video_path": "csik_d2du.mp4",
-      "start_time": "01:44:11",
-      "end_time": "01:44:30",
-      "pool_corners": [
-        [0, 835],
-        [80, 774],
-        [1542, 759],
-        [1617, 817]
-      ]
-    },
-    {
-      "id": "women_butterfly_TODO",
-      "description": "lane 2, with stop",
-      "video_path": "csik_d2du.mp4",
-      "start_time": "01:59:23",
-      "end_time": "01:59:32",
-      "pool_corners": [
-        [0, 835],
-        [80, 774],
-        [1542, 759],
-        [1617, 817]
-      ]
-    },
-    {
-      "id": "women_backstroke",
-      "description": "lane 4, right, pink",
-      "video_path": "csik_d2du.mp4",
-      "start_time": "01:29:35",
-      "end_time": "01:29:49",
-      "pool_corners": [
-        [0, 772],
-        [83, 724],
-        [1484, 713],
-        [1541, 759]
+      "id": "d3du",
+      "path": "csik_d3du.mp4",
+      "lanes": [
+        {"id": 1, "coordinates": [[0, 912], [104, 834], [1621, 821], [1707, 894]]},
+        {"id": 2, "coordinates": [[0, 834], [84, 778], [1542, 759], [1621, 821]]},
+        {"id": 3, "coordinates": [[0, 773], [88, 725], [1482, 716], [1542, 759]]},
+        {"id": 4, "coordinates": [[88, 725], [162, 685], [1429, 675], [1482, 716]]},
+        {"id": 5, "coordinates": [[162, 685], [224, 651], [1383, 641], [1429, 675]]},
+        {"id": 6, "coordinates": [[224, 651], [279, 623], [1347, 614], [1383, 641]]},
+        {"id": 7, "coordinates": [[279, 623], [324, 598], [1319, 590], [1347, 614]]},
+        {"id": 8, "coordinates": [[324, 598], [363, 577], [1297, 569], [1319, 590]]},
+        {"id": 9, "coordinates": [[363, 577], [390, 560], [1282, 553], [1297, 569]]}
       ]
     }
   ]

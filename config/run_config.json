@@ -1,5 +1,6 @@
 {
-  "active_video_id": "csik_d2du_run1",
-  "video_config_path": "data/videos.json",
+  "active_clip_id": "d2du_woman_freestyle",
+  "model_path": "models/swimmer_freestyle.pt",
+  "confidence_threshold": 0.5,
   "show_tracking": true
 }

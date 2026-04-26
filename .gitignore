@@ -1,17 +1,35 @@
-/res/
-/.onlab_venv/
-*.pt
-
+# Python
 __pycache__/
 *.pyc
+*.pyo
 .venv/
+/.onlab_venv/
 
+# Data
 data/raw/*
-data/processed/*
-training/data/*
-training/runs/*
+training_cache/
 
+# Model files
+models/*
+!models/.gitkeep
+*.onnx
+/yolo*.pt
+
+# Media
 *.mp4
 *.mov
 
+# Secrets
+.env
+
+# OS
 .DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Claude Code
+.claude/
+CLAUDE.md

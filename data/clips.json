@@ -1,0 +1,80 @@
+{
+  "clips": [
+    {
+      "id": "d2du_woman_freestyle",
+      "video_id": "d2du",
+      "lane": 3,
+      "start_time": "00:43:23",
+      "end_time": "00:43:50"
+    },
+    {
+      "id": "d2du_men_freestyle",
+      "video_id": "d2du",
+      "lane": 3,
+      "start_time": "00:07:54",
+      "end_time": "00:08:07",
+      "description": "lane 3, right, blue"
+    },
+    {
+      "id": "d2du_men_freestyle2",
+      "video_id": "d2du",
+      "lane": 3,
+      "start_time": "00:08:11",
+      "end_time": "00:08:24",
+      "description": "lane 3, left, blue"
+    },
+    {
+      "id": "d2du_men_backstroke",
+      "video_id": "d2du",
+      "lane": 3,
+      "start_time": "01:12:41",
+      "end_time": "01:12:57"
+    },
+    {
+      "id": "d2du_men_breaststroke",
+      "video_id": "d2du",
+      "lane": 3,
+      "start_time": "01:36:52",
+      "end_time": "01:37:11"
+    },
+    {
+      "id": "d2du_men_butterfly",
+      "video_id": "d2du",
+      "lane": 3,
+      "start_time": "01:52:50",
+      "end_time": "01:53:01"
+    },
+    {
+      "id": "d2du_women_freestyle",
+      "video_id": "d2du",
+      "lane": 2,
+      "start_time": "00:40:24",
+      "end_time": "00:40:39",
+      "description": "lane 2, left"
+    },
+    {
+      "id": "d2du_women_breaststroke",
+      "video_id": "d2du",
+      "lane": 3,
+      "start_time": "01:44:11",
+      "end_time": "01:44:30",
+      "description": "lane 3, with stop"
+    },
+    {
+      "id": "d2du_women_butterfly",
+      "video_id": "d2du",
+      "lane": 2,
+      "start_time": "01:59:23",
+      "end_time": "01:59:32",
+      "description": "lane 2, with stop"
+    },
+    {
+      "id": "d2du_women_backstroke",
+      "video_id": "d2du",
+      "lane": 4,
+      "start_time": "01:29:35",
+      "end_time": "01:29:49",
+      "description": "lane 4, right, pink"
+    }
+  ]
+}
