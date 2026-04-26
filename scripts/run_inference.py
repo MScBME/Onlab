@@ -41,7 +41,7 @@ def compute_speed_from_meters(positions_m, timestamps, window_size=15):
 def main():
     parser = argparse.ArgumentParser(description="Run YOLO inference on a clip.")
     parser.add_argument("--clip", help="Clip id from clips.json (overrides active_clip_id in run_config.json)")
-    parser.add_argument("--lane", type=int, help="Override the clip's lane")
+    parser.add_argument("--lane", type=int, help="Lane id (overrides the lane in clips.json)")
     parser.add_argument("--model", help="Path to YOLO model .pt (overrides run_config.json)")
     args = parser.parse_args()
 

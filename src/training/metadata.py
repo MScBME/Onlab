@@ -45,12 +45,9 @@ class EventCatalog:
     def all(self) -> list:
         return list(self.events)
 
-    def filter(self, criteria: dict) -> list:
-        result = []
-        for event in self.events:
-            if all(_event_matches(event, k, v) for k, v in criteria.items()):
-                result.append(event)
-        return result
+    def filter(self, criteria: dict, events: list = None) -> list:
+        source = events if events is not None else self.events
+        return [e for e in source if all(_event_matches(e, k, v) for k, v in criteria.items())]
 
 
 @dataclass

@@ -24,6 +24,10 @@ def main():
         help="Event filters as key=value (e.g. video_id=d2du stroke=freestyle gender=male)",
     )
     parser.add_argument(
+        "--event-ids",
+        help="Comma-separated 1-based event positions in events.json (e.g. '1,5,7')",
+    )
+    parser.add_argument(
         "--frame-count",
         nargs="?",
         const=-1,
@@ -45,9 +49,11 @@ def main():
     criteria = parse_filter_args(args.filter)
     use_frame_count = args.frame_count is not None
     frame_count = args.frame_count if (use_frame_count and args.frame_count != -1) else None
+    event_ids = [int(s) for s in args.event_ids.split(",") if s.strip()] if args.event_ids else None
 
     summary = extract_frames(
         filter_criteria=criteria or None,
+        event_ids=event_ids,
         frame_count=frame_count,
         use_frame_count=use_frame_count,
         interval_sec_override=args.interval_sec,

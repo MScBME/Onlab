@@ -14,7 +14,7 @@ from src.training.metadata import (
 )
 from src.training.roboflow_client import download_dataset
 from src.training.trainer import train
-from src.utils.paths import ANNOTATED_DIR, DATASET_DIR, PROCESSED_DIR
+from src.utils.paths import ANNOTATED_DIR, PROCESSED_DIR
 
 
 def main():
@@ -80,7 +80,7 @@ def main():
         sys.exit(1)
 
     print("\n[4/5] Splitting dataset (80/10/10)...")
-    split_summary = build_dataset(model_name=args.name, source_dir=PROCESSED_DIR, base_out_dir=DATASET_DIR / args.name)
+    split_summary = build_dataset(source_dir=PROCESSED_DIR)
     print(
         f"Total: {split_summary['total']} | "
         f"train: {split_summary['train']}, val: {split_summary['val']}, test: {split_summary['test']}"

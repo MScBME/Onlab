@@ -13,7 +13,7 @@ HASH_MARKER = "_jpg.rf."
 def download_dataset(target_dir: Path = None, force: bool = False) -> Path:
     target_dir = target_dir or ANNOTATED_DIR
 
-    if target_dir.exists() and any(target_dir.iterdir()) and not force:
+    if not force and target_dir.exists() and any(target_dir.glob("*.jpg")):
         print(f"Annotated data already present at {target_dir}, skipping download (use --force to refresh)")
         return target_dir
 
@@ -36,6 +36,8 @@ def download_dataset(target_dir: Path = None, force: bool = False) -> Path:
     dataset = version.download("yolov11", location=str(download_root))
     dataset_path = Path(dataset.location)
 
+    if target_dir.exists():
+        shutil.rmtree(target_dir)
     target_dir.mkdir(parents=True, exist_ok=True)
     for sub in ("train", "valid", "test"):
         _flatten_split(dataset_path / sub, target_dir)

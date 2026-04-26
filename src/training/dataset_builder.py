@@ -8,14 +8,13 @@ from src.utils.paths import DATASET_DIR, PROCESSED_DIR
 
 
 def build_dataset(
-    model_name: str,
     source_dir: Path = None,
     base_out_dir: Path = None,
     split: tuple = (0.8, 0.1, 0.1),
     seed: int = 42,
 ) -> dict:
     source_dir = source_dir or PROCESSED_DIR
-    base_out_dir = base_out_dir or (DATASET_DIR / model_name)
+    base_out_dir = base_out_dir or DATASET_DIR
 
     dirs = {
         "train_img": base_out_dir / "images" / "train",

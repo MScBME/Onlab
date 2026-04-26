@@ -60,6 +60,19 @@ def _resolve_extraction_params(config, frame_count, use_frame_count, interval_se
     return interval_sec, frame_count
 
 
+def _select_events(event_catalog, event_ids, filter_criteria):
+    events = event_catalog.all()
+    if event_ids:
+        total = len(events)
+        for idx in event_ids:
+            if not 1 <= idx <= total:
+                raise ValueError(f"Event id {idx} out of range (have {total} events in events.json)")
+        events = [events[idx - 1] for idx in event_ids]
+    if filter_criteria:
+        events = event_catalog.filter(filter_criteria, events)
+    return events
+
+
 def _group_by_video(events: list) -> dict:
     grouped = {}
     for event in events:
@@ -121,6 +134,7 @@ def _process_video(video_path, vid_events, video_id, interval_sec, frame_count, 
 
 def extract_frames(
     filter_criteria: dict = None,
+    event_ids: list = None,
     frame_count: int = None,
     use_frame_count: bool = False,
     interval_sec_override: float = None,
@@ -134,9 +148,9 @@ def extract_frames(
     )
     effective_frame_count = frame_count_resolved if use_frame_count else None
 
-    events = event_catalog.filter(filter_criteria) if filter_criteria else event_catalog.all()
+    events = _select_events(event_catalog, event_ids, filter_criteria)
     if not events:
-        print("No events matched the filter; nothing to extract.")
+        print("No events matched the selection; nothing to extract.")
         return {"extracted": 0, "skipped": 0, "missing_video": []}
 
     existing_by_id = {e["id"]: e for e in load_event_frames()}
