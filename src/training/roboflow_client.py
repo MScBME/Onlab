@@ -1,6 +1,7 @@
 import os
 import shutil
 from pathlib import Path
+from src.utils.logger import get_logger
 
 from dotenv import load_dotenv
 from roboflow import Roboflow
@@ -9,6 +10,7 @@ from src.utils.paths import ANNOTATED_DIR, PROJECT_ROOT
 
 HASH_MARKER = "_jpg.rf."
 
+logger = get_logger(__name__)
 
 def download_dataset(target_dir: Path = None, force: bool = False) -> Path:
     target_dir = target_dir or ANNOTATED_DIR
@@ -68,6 +70,7 @@ def _strip_hash_suffix(directory: Path):
         new_name = f"{prefix}{entry.suffix}"
         new_path = entry.with_name(new_name)
         if new_path.exists():
+            logger.warning(f"Duplicate detected: Removing {entry.name} because {new_name} already exists.")
             entry.unlink()
         else:
             entry.rename(new_path)
