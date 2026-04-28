@@ -1,6 +1,7 @@
 import argparse
 import sys
 from pathlib import Path
+from ultralytics import YOLO
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -100,6 +101,20 @@ def main():
         batch=args.batch,
     )
     print(f"\nDone. Model saved to: {model_path}")
+
+    print("\n[6/6] Final Evaluation on Test Set...")
+
+    runs_dir = PROCESSED_DIR.parent / "runs"
+    
+    final_model = YOLO(model_path)
+    results = final_model.val(
+        split='test',
+        project=str(runs_dir),
+        name=f"{args.name}_test",
+        exist_ok=True
+    )
+    
+    print(f"Test Set mAP50-95: {results.results_dict['metrics/mAP50-95(B)']:.4f}")
 
 
 if __name__ == "__main__":

@@ -17,7 +17,6 @@ from src.visualization.plots import plot_speed
 
 POOL_LENGTH_M = 25.0
 
-
 def get_clip(clips_data, clip_id):
     for clip in clips_data.get("clips", []):
         if clip["id"] == clip_id:
@@ -25,18 +24,46 @@ def get_clip(clips_data, clip_id):
     print(f"Error: Clip id '{clip_id}' not found in {CLIPS_JSON}")
     sys.exit(1)
 
+MAX_JUMP_M = 0.4
+ROLLING_WINDOW = 51
+SPEED_CAP_M_S = 2.5
 
-def compute_speed_from_meters(positions_m, timestamps, window_size=15):
+def compute_speed_from_meters(positions_m, timestamps, window_size=ROLLING_WINDOW):
+    if len(positions_m) < window_size:
+        return np.array([]), np.array([])
+
     pos = np.array(positions_m)
     ts = np.array(timestamps)
-    dp = np.abs(np.diff(pos))
-    dt = np.diff(ts)
-    raw_speeds = dp / dt
-    kernel = np.ones(window_size) / window_size
-    smoothed_speeds = np.convolve(raw_speeds, kernel, mode="valid")
-    smoothed_ts = ts[1:][window_size - 1:]
-    return smoothed_ts, smoothed_speeds
 
+    clipped_pos = np.zeros_like(pos)
+    clipped_pos[0] = pos[0]
+    for i in range(1, len(pos)):
+        if abs(pos[i] - clipped_pos[i-1]) > MAX_JUMP_M:
+            clipped_pos[i] = clipped_pos[i-1]
+        else:
+            clipped_pos[i] = pos[i]
+
+    smooth_pos = np.convolve(clipped_pos, np.ones(window_size)/window_size, mode='valid')
+    smooth_ts = ts[window_size-1:]
+
+    dp = np.abs(np.diff(smooth_pos))
+    dt = np.diff(smooth_ts)
+    dt[dt == 0] = 1e-6
+    
+    raw_speeds = dp / dt
+    
+    refined_speeds = []
+    for v in raw_speeds:
+        if v > SPEED_CAP_M_S:
+            refined_speeds.append(refined_speeds[-1] if refined_speeds else 0.0)
+        else:
+            refined_speeds.append(v)
+    
+    refined_speeds = np.array(refined_speeds)
+    if len(refined_speeds) > window_size:
+        refined_speeds = np.convolve(refined_speeds, np.ones(window_size)/window_size, mode='same')
+    
+    return smooth_ts[1:], refined_speeds
 
 def main():
     parser = argparse.ArgumentParser(description="Run YOLO inference on a clip.")
