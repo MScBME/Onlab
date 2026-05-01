@@ -124,7 +124,7 @@
     {"id": "d3du_00_12_52_000", "lanes": [1, 2, 3, 4, 5, 6], "stroke": "freestyle", "gender": "male"},
     {"id": "d3du_00_23_02_000", "lanes": [2, 3, 4, 5, 6], "stroke": "freestyle", "gender": "female"},
     {"id": "d3du_00_23_04_000", "lanes": [1, 2, 3, 4, 5, 6], "stroke": "freestyle", "gender": "female"},
-    {"id": "d3du_00_23_06_000", "lanes": [2, 3, 4, 5, 6], "stroke": "freestyle", "gender": "female"},
+    {"id": "d3du_00_23_06_000", "lanes": [3, 4, 5, 6], "stroke": "freestyle", "gender": "female"},
     {"id": "d3du_00_23_08_000", "lanes": [1, 2, 3, 4, 5, 6], "stroke": "freestyle", "gender": "female"},
     {"id": "d3du_00_23_10_000", "lanes": [1, 2, 3, 4, 5, 6], "stroke": "freestyle", "gender": "female"},
     {"id": "d3du_00_23_12_000", "lanes": [1, 2, 3, 4, 5, 6], "stroke": "freestyle", "gender": "female"},
