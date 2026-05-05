@@ -179,7 +179,7 @@
     {"id": "d3du_01_09_48_000", "lanes": [3, 4, 5, 6], "stroke": "breaststroke", "gender": "female"},
     {"id": "d3du_01_09_50_000", "lanes": [3, 4, 5, 6], "stroke": "breaststroke", "gender": "female"},
     {"id": "d3du_01_11_55_000", "lanes": [1, 2, 3, 4, 5, 6], "stroke": "backstroke", "gender": "male"},
-    {"id": "d3du_01_11_57_000", "lanes": [2, 3, 4, 5, 6], "stroke": "backstroke", "gender": "male"},
+    {"id": "d3du_01_11_57_000", "lanes": [3, 4, 5, 6], "stroke": "backstroke", "gender": "male"},
     {"id": "d3du_01_11_59_000", "lanes": [3, 4, 5, 6], "stroke": "backstroke", "gender": "male"},
     {"id": "d3du_01_12_01_000", "lanes": [2, 3, 4, 5, 6], "stroke": "backstroke", "gender": "male"},
     {"id": "d3du_01_12_03_000", "lanes": [2, 3, 4, 5, 6], "stroke": "backstroke", "gender": "male"},
