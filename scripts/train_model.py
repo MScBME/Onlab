@@ -54,12 +54,12 @@ def main():
     print("=" * 60)
 
     if not args.skip_download:
-        print("\n[1/5] Downloading annotated dataset from Roboflow...")
+        print("\n[1/6] Downloading annotated dataset from Roboflow...")
         download_dataset(target_dir=ANNOTATED_DIR, force=args.force_download)
     else:
-        print("\n[1/5] Skipping download stage.")
+        print("\n[1/6] Skipping download stage.")
 
-    print("\n[2/5] Filtering frames...")
+    print("\n[2/6] Filtering frames...")
     video_catalog = load_video_catalog()
     all_records = load_frame_records(ANNOTATED_DIR)
     selected = filter_records(all_records, filters, frame_patterns)
@@ -68,7 +68,7 @@ def main():
         print("No frames match the filter. Aborting.")
         sys.exit(1)
 
-    print("\n[3/5] Processing lanes (perspective warp + label transform)...")
+    print("\n[3/6] Processing lanes (perspective warp + label transform)...")
     process_summary = process_records(selected, video_catalog)
     print(
         f"Processed: {process_summary['processed']} per-lane images "
@@ -80,7 +80,7 @@ def main():
         print("No per-lane images produced. Aborting.")
         sys.exit(1)
 
-    print("\n[4/5] Splitting dataset (80/10/10)...")
+    print("\n[4/6] Splitting dataset (80/10/10)...")
     split_summary = build_dataset(source_dir=PROCESSED_DIR)
     print(
         f"Total: {split_summary['total']} | "
@@ -89,10 +89,10 @@ def main():
     print(f"Dataset YAML: {split_summary['yaml_path']}")
 
     if args.skip_train:
-        print("\n[5/5] Skipping training stage.")
+        print("\n[5/6] Skipping training stage.")
         return
 
-    print("\n[5/5] Training YOLO...")
+    print("\n[5/6] Training YOLO...")
     model_path = train(
         model_name=args.name,
         dataset_yaml=split_summary["yaml_path"],
