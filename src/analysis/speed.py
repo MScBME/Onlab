@@ -3,17 +3,27 @@ import numpy as np
 
 MAX_JUMP_M = 0.4
 ROLLING_WINDOW = 51
-SPEED_CAP_M_S = 2.5
+SPEED_CAP_M_S = 3.5
 
 
-def _clip_position_jumps(pos: np.ndarray, max_jump_m: float) -> np.ndarray:
+def _clip_position_jumps(pos: np.ndarray, max_jump_m: float, max_rejects: int = 5) -> np.ndarray:
     clipped = np.zeros_like(pos)
     clipped[0] = pos[0]
+    reject_count = 0
+    
     for i in range(1, len(pos)):
         if abs(pos[i] - clipped[i - 1]) > max_jump_m:
-            clipped[i] = clipped[i - 1]
+            reject_count += 1
+            if reject_count >= max_rejects:
+                # Force reset if we've rejected too many consecutive frames
+                clipped[i] = pos[i]
+                reject_count = 0
+            else:
+                clipped[i] = clipped[i - 1]
         else:
             clipped[i] = pos[i]
+            reject_count = 0
+            
     return clipped
 
 
