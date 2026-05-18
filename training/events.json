@@ -1,9 +1,9 @@
 {
   "events": [
-    {"video_id": "d2du", "start_time": "00:13:35", "end_time": "00:13:45", "stroke": "freestyle",    "gender": "male",   "lanes": [1, 2, 3, 4, 5, 6]},
-    {"video_id": "d2du", "start_time": "00:19:43", "end_time": "00:19:53", "stroke": "freestyle",    "gender": "male",   "lanes": [1, 2, 3, 4, 5, 6]},
-    {"video_id": "d2du", "start_time": "00:19:55", "end_time": "00:20:05", "stroke": "freestyle",    "gender": "male",   "lanes": [1, 2, 3, 4, 5, 6]},
-    {"video_id": "d2du", "start_time": "00:25:03", "end_time": "00:25:13", "stroke": "freestyle",    "gender": "male",   "lanes": [1, 2, 3, 4, 5, 6]},
+    {"video_id": "d2du_before_28_17", "start_time": "00:13:35", "end_time": "00:13:45", "stroke": "freestyle",    "gender": "male",   "lanes": [1, 2, 3, 4, 5, 6]},
+    {"video_id": "d2du_before_28_17", "start_time": "00:19:43", "end_time": "00:19:53", "stroke": "freestyle",    "gender": "male",   "lanes": [1, 2, 3, 4, 5, 6]},
+    {"video_id": "d2du_before_28_17", "start_time": "00:19:55", "end_time": "00:20:05", "stroke": "freestyle",    "gender": "male",   "lanes": [1, 2, 3, 4, 5, 6]},
+    {"video_id": "d2du_before_28_17", "start_time": "00:25:03", "end_time": "00:25:13", "stroke": "freestyle",    "gender": "male",   "lanes": [1, 2, 3, 4, 5, 6]},
     {"video_id": "d2du", "start_time": "00:45:14", "end_time": "00:45:24", "stroke": "freestyle",    "gender": "female", "lanes": [1, 2, 3, 4, 5, 6]},
     {"video_id": "d2du", "start_time": "00:46:42", "end_time": "00:46:52", "stroke": "freestyle",    "gender": "female", "lanes": [1, 2, 3, 4, 5, 6]},
     {"video_id": "d2du", "start_time": "00:49:45", "end_time": "00:49:55", "stroke": "freestyle",    "gender": "female", "lanes": [1, 2, 3, 4, 5, 6]},
@@ -21,7 +21,7 @@
     {"video_id": "d2du", "start_time": "01:39:39", "end_time": "01:39:49", "stroke": "breaststroke", "gender": "male",   "lanes": [3, 4, 5]},
     {"video_id": "d2du", "start_time": "01:50:40", "end_time": "01:50:50", "stroke": "butterfly",    "gender": "male",   "lanes": [2, 3, 4, 5, 6]},
     {"video_id": "d2du", "start_time": "01:53:06", "end_time": "01:53:16", "stroke": "butterfly",    "gender": "male",   "lanes": [2, 3, 4, 5, 6]},
-    {"video_id": "d3du", "start_time": "00:08:32", "end_time": "00:08:42", "stroke": "freestyle",    "gender": "male",   "lanes": [2, 3, 4, 5, 6]},
+    {"video_id": "d3du_before_11_40", "start_time": "00:08:32", "end_time": "00:08:42", "stroke": "freestyle",    "gender": "male",   "lanes": [2, 3, 4, 5, 6]},
     {"video_id": "d3du", "start_time": "00:12:42", "end_time": "00:12:52", "stroke": "freestyle",    "gender": "male",   "lanes": [2, 3, 4, 5, 6]},
     {"video_id": "d3du", "start_time": "00:23:02", "end_time": "00:23:12", "stroke": "freestyle",    "gender": "female",   "lanes": [2, 3, 4, 5, 6]},
     {"video_id": "d3du", "start_time": "00:39:26", "end_time": "00:39:36", "stroke": "butterfly",    "gender": "female", "lanes": [2, 3, 4, 5, 6]},
