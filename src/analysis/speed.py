@@ -3,6 +3,7 @@ import numpy as np
 
 MAX_JUMP_M = 0.4
 ROLLING_WINDOW = 51
+SPEED_SMOOTH_WINDOW = 11
 SPEED_CAP_M_S = 3.5
 
 
@@ -41,6 +42,7 @@ def smooth_and_cap_speed(
     positions_m,
     timestamps,
     window_size: int = ROLLING_WINDOW,
+    speed_window_size: int = SPEED_SMOOTH_WINDOW,
     max_jump_m: float = MAX_JUMP_M,
     speed_cap: float = SPEED_CAP_M_S,
 ):
@@ -55,17 +57,22 @@ def smooth_and_cap_speed(
 
     clipped = _clip_position_jumps(pos, max_jump_m)
 
-    kernel = np.ones(window_size) / window_size
-    smooth_pos = np.convolve(clipped, kernel, mode="valid")
+    # Step 1: Strong smoothing on positions
+    kernel_pos = np.ones(window_size) / window_size
+    smooth_pos = np.convolve(clipped, kernel_pos, mode="valid")
     smooth_ts = ts[window_size - 1:]
 
     dp = np.abs(np.diff(smooth_pos))
     dt = np.diff(smooth_ts)
     dt[dt == 0] = 1e-6
 
+    # Step 2: Calculate raw speeds and cap them
     speeds = _cap_speeds(dp / dt, speed_cap)
-    if len(speeds) > window_size:
-        speeds = np.convolve(speeds, kernel, mode="same")
+    
+    # Step 3: Gentle smoothing on speeds
+    if len(speeds) > speed_window_size:
+        kernel_speed = np.ones(speed_window_size) / speed_window_size
+        speeds = np.convolve(speeds, kernel_speed, mode="same")
 
     return smooth_ts[1:], speeds
 
