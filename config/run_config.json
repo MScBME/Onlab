@@ -1,6 +1,6 @@
 {
-  "active_clip_id": "d2du_woman_freestyle",
-  "model_path": "models/swimmer_freestyle.pt",
+  "active_clip_id": "d2du_men_freestyle2",
+  "model_path": "models/swimmer_body_direction_2_all.pt",
   "confidence_threshold": 0.5,
   "show_tracking": true
 }

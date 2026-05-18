@@ -17,7 +17,7 @@ EVENT_REQUIRED_FIELDS = ("video_id", "start_time", "end_time", "stroke", "gender
 EVENT_FRAME_REQUIRED = ("id", "lanes", "stroke", "gender")
 CUSTOM_FRAME_REQUIRED = ("id", "video_id", "lanes", "stroke", "gender")
 
-EVENT_FRAME_ID_PATTERN = re.compile(r"^([A-Za-z0-9]+)_(\d{2})_(\d{2})_(\d{2})_(\d{3})$")
+EVENT_FRAME_ID_PATTERN = re.compile(r"^(\w+)_(\d{2})_(\d{2})_(\d{2})_(\d{3})$")
 CUSTOM_ID_PATTERN = re.compile(r"^custom_\d+$")
 
 
