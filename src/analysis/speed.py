@@ -1,41 +1,42 @@
 import cv2
 import numpy as np
 
+from src.tracking.kalman_filter import SwimmerKalmanFilter1D
+
 MAX_JUMP_M = 0.4
-ROLLING_WINDOW = 51
-SPEED_SMOOTH_WINDOW = 11
-SPEED_CAP_M_S = 3.5
+ROLLING_WINDOW = 11
+SPEED_SMOOTH_WINDOW = 7
+SPEED_CAP_M_S = 3.2
 
 
-def _clip_position_jumps(pos: np.ndarray, max_jump_m: float, max_rejects: int = 5) -> np.ndarray:
-    clipped = np.zeros_like(pos)
-    clipped[0] = pos[0]
-    reject_count = 0
-    
+def filter_positions_kalman(positions_m, timestamps, process_noise_std=0.8, measurement_noise_std=0.15):
+    """
+    Offline Kalman-szűrés a mért pozíciók és időbélyegek listáján.
+    Visszaadja a szűrt időbélyegeket, pozíciókat és a számított sebességeket.
+    """
+    if len(positions_m) == 0:
+        return np.array([]), np.array([]), np.array([])
+
+    pos = np.array(positions_m, dtype=np.float64)
+    ts = np.array(timestamps, dtype=np.float64)
+
+    kf = SwimmerKalmanFilter1D(
+        initial_pos=pos[0],
+        initial_time=ts[0],
+        process_noise_std=process_noise_std,
+        measurement_noise_std=measurement_noise_std,
+    )
+
+    filtered_positions = [pos[0]]
+    filtered_speeds = [0.0]
+
     for i in range(1, len(pos)):
-        if abs(pos[i] - clipped[i - 1]) > max_jump_m:
-            reject_count += 1
-            if reject_count >= max_rejects:
-                # Force reset if we've rejected too many consecutive frames
-                clipped[i] = pos[i]
-                reject_count = 0
-            else:
-                clipped[i] = clipped[i - 1]
-        else:
-            clipped[i] = pos[i]
-            reject_count = 0
-            
-    return clipped
+        kf.predict(ts[i])
+        kf.update(pos[i])
+        filtered_positions.append(kf.get_position())
+        filtered_speeds.append(kf.get_speed())
 
-
-def _cap_speeds(speeds: np.ndarray, cap: float) -> np.ndarray:
-    capped = np.zeros_like(speeds)
-    for i, v in enumerate(speeds):
-        if v > cap:
-            capped[i] = capped[i - 1] if i > 0 else 0.0
-        else:
-            capped[i] = v
-    return capped
+    return ts, np.array(filtered_positions), np.array(filtered_speeds)
 
 
 def smooth_and_cap_speed(
@@ -46,39 +47,35 @@ def smooth_and_cap_speed(
     max_jump_m: float = MAX_JUMP_M,
     speed_cap: float = SPEED_CAP_M_S,
 ):
-    """Outlier-suppressed speed pipeline:
-    jump-clip → smooth positions → |dy/dt| → cap → smooth speeds.
     """
-    if len(positions_m) < window_size:
+    Kalman-alapú sebességszámítás kíméletes utólagos simítással.
+    Megszünteti a szélső adatok elvesztését és a zaj pozitív integrálódását.
+    """
+    if len(positions_m) < 3:
         return np.array([]), np.array([])
 
     pos = np.array(positions_m, dtype=np.float64)
     ts = np.array(timestamps, dtype=np.float64)
 
-    clipped = _clip_position_jumps(pos, max_jump_m)
+    # 1. Kalman szűrés
+    ts_out, _, speeds = filter_positions_kalman(pos, ts)
 
-    # Step 1: Strong smoothing on positions
-    kernel_pos = np.ones(window_size) / window_size
-    smooth_pos = np.convolve(clipped, kernel_pos, mode="valid")
-    smooth_ts = ts[window_size - 1:]
+    # 2. Fizikai korlátok érvényesítése
+    speeds = np.clip(speeds, 0.0, speed_cap)
 
-    dp = np.abs(np.diff(smooth_pos))
-    dt = np.diff(smooth_ts)
-    dt[dt == 0] = 1e-6
+    # 3. Kíméletes mozgóablakos simítás a karciklusok egyenletes megjelenítéséhez
+    if speed_window_size > 1 and len(speeds) >= speed_window_size:
+        kernel = np.ones(speed_window_size) / speed_window_size
+        speeds = np.convolve(speeds, kernel, mode="same")
 
-    # Step 2: Calculate raw speeds and cap them
-    speeds = _cap_speeds(dp / dt, speed_cap)
-    
-    # Step 3: Gentle smoothing on speeds
-    if len(speeds) > speed_window_size:
-        kernel_speed = np.ones(speed_window_size) / speed_window_size
-        speeds = np.convolve(speeds, kernel_speed, mode="same")
-
-    return smooth_ts[1:], speeds
+    return ts_out, speeds
 
 
 def compute_speed(xs, ys, timestamps, homography, window_size: int = ROLLING_WINDOW):
-    """Legacy CSRT entrypoint: pixel coords + homography → meters → smooth_and_cap_speed."""
+    """CSRT kézi követő kompatibilitás."""
+    if len(xs) == 0:
+        return np.array([]), np.array([])
+
     xs = np.array(xs, dtype=np.float32)
     ys = np.array(ys, dtype=np.float32)
     points_pixel = np.stack((xs, ys), axis=-1).reshape(-1, 1, 2)

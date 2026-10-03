@@ -20,28 +20,53 @@ def _warp_frame_for_lane(img: np.ndarray, lane_coords: list):
 
 
 def _transform_labels(labels, img_shape, src_pts, matrix):
+    """
+    A téglalap mind a 4 sarkát levetíti a homográfiával,
+    így kiküszöböli a perspektivikus elfordulásból adódó torzulást.
+    """
     h_orig, w_orig = img_shape[:2]
     result = []
+    
     for label in labels:
+        cls_id = label[0]
         _, x_c, y_c, w_b, h_b = map(float, label)
-        px_x, px_y = x_c * w_orig, y_c * h_orig
+        px_cx, px_cy = x_c * w_orig, y_c * h_orig
+        px_w, px_h = w_b * w_orig, h_b * h_orig
 
-        if cv2.pointPolygonTest(src_pts, (px_x, px_y), False) < 0:
+        # Ha a doboz középpontja nincs az adott sávon belül, átugorjuk
+        if cv2.pointPolygonTest(src_pts, (px_cx, px_cy), False) < 0:
             continue
 
-        pt_center = np.array([[[px_x, px_y]]], dtype="float32")
-        new_center = cv2.perspectiveTransform(pt_center, matrix)[0][0]
+        corners = np.array([
+            [px_cx - px_w / 2, px_cy - px_h / 2],
+            [px_cx + px_w / 2, px_cy - px_h / 2],
+            [px_cx + px_w / 2, px_cy + px_h / 2],
+            [px_cx - px_w / 2, px_cy + px_h / 2]
+        ], dtype="float32").reshape(-1, 1, 2)
 
-        px_w, px_h = w_b * w_orig, h_b * h_orig
-        pt_edge = np.array([[[px_x + px_w / 2, px_y + px_h / 2]]], dtype="float32")
-        new_edge = cv2.perspectiveTransform(pt_edge, matrix)[0][0]
+        warped_corners = cv2.perspectiveTransform(corners, matrix).reshape(-1, 2)
 
-        new_x = new_center[0] / LANE_W
-        new_y = new_center[1] / LANE_H
-        new_wb = min((abs(new_edge[0] - new_center[0]) * 2) / LANE_W, 1.0)
-        new_hb = min((abs(new_edge[1] - new_center[1]) * 2) / LANE_H, 1.0)
+        xs = warped_corners[:, 0]
+        ys = warped_corners[:, 1]
 
-        result.append(f"0 {new_x:.6f} {new_y:.6f} {new_wb:.6f} {new_hb:.6f}")
+        min_x = np.clip(xs.min(), 0, LANE_W)
+        max_x = np.clip(xs.max(), 0, LANE_W)
+        min_y = np.clip(ys.min(), 0, LANE_H)
+        max_y = np.clip(ys.max(), 0, LANE_H)
+
+        new_w = max_x - min_x
+        new_h = max_y - min_y
+
+        if new_w < 5 or new_h < 5:
+            continue
+
+        new_cx = (min_x + max_x) / 2.0 / LANE_W
+        new_cy = (min_y + max_y) / 2.0 / LANE_H
+        new_wb = new_w / LANE_W
+        new_hb = new_h / LANE_H
+
+        result.append(f"{cls_id} {new_cx:.6f} {new_cy:.6f} {new_wb:.6f} {new_hb:.6f}")
+        
     return result
 
 
