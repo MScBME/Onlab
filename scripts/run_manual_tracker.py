@@ -15,7 +15,6 @@ from src.utils.paths import CLIPS_JSON, RAW_VIDEO_DIR, RUN_CONFIG_JSON
 from src.video.loader import VideoLoader
 from src.visualization.plots import plot_speed
 
-POOL_LENGTH_M = 25.0
 LANE_WIDTH_M = 2.5
 
 
@@ -44,12 +43,12 @@ def resolve_clip(args, settings):
     return clip_id, clip, lane_id
 
 
-def build_homography(lane_points):
+def build_homography(lane_points, lane_length_m):
     real_world_corners = np.array([
         [0.0, 0.0],
         [0.0, LANE_WIDTH_M],
-        [POOL_LENGTH_M, LANE_WIDTH_M],
-        [POOL_LENGTH_M, 0.0],
+        [lane_length_m, LANE_WIDTH_M],
+        [lane_length_m, 0.0],
     ], dtype=np.float32)
     homography, _ = cv2.findHomography(lane_points, real_world_corners)
     return homography
@@ -109,7 +108,7 @@ def main():
     start_sec = time_to_seconds(clip.get("start_time", "00:00:00"))
     end_sec = time_to_seconds(clip.get("end_time"))
 
-    homography = build_homography(lane_points)
+    homography = build_homography(lane_points, video_catalog.get_lane_length(clip["video_id"], lane_id))
 
     print(f"Clip: {clip_id} | video: {clip['video_id']} | lane: {lane_id}")
 

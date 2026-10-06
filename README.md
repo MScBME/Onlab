@@ -13,9 +13,13 @@ Ez a projekt egy MSc Önálló laboratórium keretében készült, teljes körű
 ## Első Lépések
 
 ### 1. Telepítés
-A projekt futtatásához Python 3.10 vagy újabb verzió szükséges.
+A projekt futtatásához Python 3.10 vagy újabb verzió szükséges. A függőségeket a projekt virtuális környezetébe (`.onlab_venv`) telepítsük, ne a globális Pythonba:
 ```bash
-pip install -r requirements.txt
+.onlab_venv/Scripts/python.exe -m pip install -r requirements.txt
+```
+A tesztek futtatása:
+```bash
+.onlab_venv/Scripts/python.exe -m pytest
 ```
 
 ### 2. Projekt Struktúra
@@ -60,10 +64,14 @@ python scripts/run_inference.py --clip d2du_woman_freestyle --lane 4
 ---
 
 ## Eszközök
-- **Felhasználói Felület (UI Viewer):** Képi felület a videóadatok és annotációk felfedezéséhez.
+- **Asztali alkalmazás (Swimmer Tracker):** PySide6 + Qt Quick felület (a felület szövegei angolok).
   ```bash
-  python scripts/ui_viewer.py
+  .onlab_venv/Scripts/python.exe scripts/run_app.py
   ```
+  - *Video library:* a `data/videos.json` videói kártyákon. Az **Add video** egy fájlt a `data/raw/` mappába másol (ha már ott van, helyben regisztrálja), és legalább egy lane megadását kéri.
+  - *Lane editor:* a lane 4 sarka bármelyik képkockán, tetszőleges sorrendben kattintható, a mentett sorrend automatikusan normalizálódik. Lane-enként megadható a kijelölt szakasz valós hossza (`length_m`, alapértelmezés 25 m). Lane-ek másolhatók egy másik videóból. Klip vagy tanítóadat által használt lane nem törölhető.
+  - *Workspace:* időtartomány kijelölése a timeline-on (I/O billentyű, „Zoom to range”), majd lane, modell és konfidencia választása. Az elemzés élőben mutatja a detekciót, a bird's-eye nézetet, a telemetriát és a sebességgrafikont, a végén pedig összegzést ad. Elérhető a Pause/Resume, a Restart és a Stop. A beállítások változása csak Restart után érvényesül.
+  - *Create clip…:* az aktuális tartományt klipként menti a `data/clips.json`-be. Az id automatikus (`<video_id>_lane<n>_<HH>_<MM>_<SS>`), csak a leírást kell megadni.
 - **Manuális Követő (Tracker):** Hagyományos gépi látás algoritmus (CSRT) alkalmazása a manuális követéshez és verifikációhoz.
   ```bash
   python scripts/run_manual_tracker.py

@@ -9,14 +9,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.analysis.speed import smooth_and_cap_speed
 from src.detection.detector import SwimmerDetector
-from src.training.lane_processor import DST_PTS, LANE_H, LANE_W
 from src.training.metadata import load_video_catalog
 from src.utils.config import load_json, time_to_seconds
 from src.utils.paths import CLIPS_JSON, PROJECT_ROOT, RAW_VIDEO_DIR, RUN_CONFIG_JSON
+from src.video.lane_warp import DST_PTS, LANE_H, LANE_W
 from src.video.loader import VideoLoader
 from src.visualization.plots import plot_speed
-
-POOL_LENGTH_M = 12.5
 
 
 def get_clip(clips_data, clip_id):
@@ -58,6 +56,7 @@ def main():
     lane_coords = np.array(
         video_catalog.get_lane_coordinates(clip["video_id"], lane_id), dtype=np.float32
     )
+    lane_length_m = video_catalog.get_lane_length(clip["video_id"], lane_id)
 
     start_sec = time_to_seconds(clip.get("start_time", "00:00:00"))
     end_sec = time_to_seconds(clip.get("end_time"))
@@ -81,7 +80,7 @@ def main():
 
         if detection is not None:
             (cx, cy), (x1, y1, x2, y2), conf = detection
-            pos_m = cy * (POOL_LENGTH_M / LANE_H)
+            pos_m = cy * (lane_length_m / LANE_H)
             positions_m.append(pos_m)
             timestamps.append(timestamp)
 

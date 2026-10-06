@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
+from src.catalog.models import DEFAULT_LANE_LENGTH_M
 from src.utils.config import load_json
 from src.utils.paths import (
     CUSTOM_FRAMES_JSON,
@@ -30,12 +31,19 @@ class VideoCatalog:
             raise KeyError(f"Video '{video_id}' not found in videos.json")
         return self.videos_by_id[video_id]
 
-    def get_lane_coordinates(self, video_id: str, lane_id: int) -> list:
+    def get_lane(self, video_id: str, lane_id: int) -> dict:
         video = self.get_video(video_id)
         for lane in video.get("lanes", []):
             if lane["id"] == lane_id:
-                return lane["coordinates"]
+                return lane
         raise KeyError(f"Lane {lane_id} not found for video '{video_id}'")
+
+    def get_lane_coordinates(self, video_id: str, lane_id: int) -> list:
+        return self.get_lane(video_id, lane_id)["coordinates"]
+
+    def get_lane_length(self, video_id: str, lane_id: int) -> float:
+        """Real length (m) of the marked lane section; lanes without `length_m` default to 25 m."""
+        return float(self.get_lane(video_id, lane_id).get("length_m", DEFAULT_LANE_LENGTH_M))
 
 
 @dataclass

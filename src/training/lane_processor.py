@@ -6,10 +6,7 @@ import numpy as np
 
 from src.training.metadata import FrameRecord, VideoCatalog
 from src.utils.paths import PROCESSED_DIR
-
-LANE_W = 256
-LANE_H = 1024
-DST_PTS = np.array([[0, 0], [LANE_W, 0], [LANE_W, LANE_H], [0, LANE_H]], dtype="float32")
+from src.video.lane_warp import DST_PTS, LANE_H, LANE_W
 
 
 def _warp_frame_for_lane(img: np.ndarray, lane_coords: list):

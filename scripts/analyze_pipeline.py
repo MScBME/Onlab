@@ -10,13 +10,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.analysis.speed import filter_positions_kalman, smooth_and_cap_speed
 from src.detection.detector import SwimmerDetector
-from src.training.lane_processor import DST_PTS, LANE_H, LANE_W
 from src.training.metadata import load_video_catalog
 from src.utils.config import load_json, time_to_seconds
 from src.utils.paths import CLIPS_JSON, MODELS_DIR, RAW_VIDEO_DIR, RUN_CONFIG_JSON
+from src.video.lane_warp import DST_PTS, LANE_H, LANE_W
 from src.video.loader import VideoLoader
-
-POOL_LENGTH_M = 25.0
 
 
 def main():
@@ -44,6 +42,7 @@ def main():
     end_sec = time_to_seconds(clip.get("end_time"))
 
     lane_coords = np.array(video_catalog.get_lane_coordinates(clip["video_id"], lane_id), dtype=np.float32)
+    lane_length_m = video_catalog.get_lane_length(clip["video_id"], lane_id)
     matrix = cv2.getPerspectiveTransform(lane_coords, DST_PTS)
 
     model_path = Path(model_name) if Path(model_name).is_absolute() else MODELS_DIR / Path(model_name).name
@@ -60,7 +59,7 @@ def main():
         detection = detector.detect(warped)
         if detection:
             (cx, cy), _, _ = detection
-            raw_positions.append(cy * (POOL_LENGTH_M / LANE_H))
+            raw_positions.append(cy * (lane_length_m / LANE_H))
             timestamps.append(ts)
 
     if len(raw_positions) < 15:
