@@ -20,7 +20,7 @@ from src.utils.config import load_json, time_to_seconds
 from src.utils.paths import CLIPS_JSON, MODELS_DIR, RAW_VIDEO_DIR
 from src.video.loader import VideoLoader
 
-POOL_LENGTH_M = 25.0
+POOL_LENGTH_M = 12.5
 
 
 class VideoWorker(threading.Thread):
@@ -127,7 +127,7 @@ class VideoWorker(threading.Thread):
 class SwimmerUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Swimmer Detector Pro")
+        self.root.title("Swimmer Detector")
         self.root.geometry("1360x780")
         self.root.configure(bg="#1a1a1a")
 

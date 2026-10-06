@@ -16,7 +16,7 @@ from src.utils.paths import CLIPS_JSON, PROJECT_ROOT, RAW_VIDEO_DIR, RUN_CONFIG_
 from src.video.loader import VideoLoader
 from src.visualization.plots import plot_speed
 
-POOL_LENGTH_M = 25.0
+POOL_LENGTH_M = 12.5
 
 
 def get_clip(clips_data, clip_id):
