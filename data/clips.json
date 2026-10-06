@@ -1,0 +1,128 @@
+{
+  "clips": [
+    {
+      "id": "d2du_woman_freestyle",
+      "video_id": "d2du",
+      "lane": 3,
+      "start_time": "00:43:23",
+      "end_time": "00:43:50"
+    },
+    {
+      "id": "d2du_men_freestyle",
+      "video_id": "d2du",
+      "lane": 3,
+      "start_time": "00:07:54",
+      "end_time": "00:08:07",
+      "description": "lane 3, right, blue"
+    },
+    {
+      "id": "d2du_men_freestyle2",
+      "video_id": "d2du",
+      "lane": 3,
+      "start_time": "00:08:11",
+      "end_time": "00:08:24",
+      "description": "lane 3, left, blue"
+    },
+    {
+      "id": "d2du_men_backstroke",
+      "video_id": "d2du",
+      "lane": 3,
+      "start_time": "01:12:41",
+      "end_time": "01:12:57"
+    },
+    {
+      "id": "d2du_men_breaststroke",
+      "video_id": "d2du",
+      "lane": 3,
+      "start_time": "01:36:52",
+      "end_time": "01:37:11"
+    },
+    {
+      "id": "d2du_men_butterfly",
+      "video_id": "d2du",
+      "lane": 3,
+      "start_time": "01:52:50",
+      "end_time": "01:53:01"
+    },
+    {
+      "id": "d2du_women_freestyle",
+      "video_id": "d2du",
+      "lane": 2,
+      "start_time": "00:40:24",
+      "end_time": "00:40:39",
+      "description": "lane 2, left"
+    },
+    {
+      "id": "d2du_women_breaststroke",
+      "video_id": "d2du",
+      "lane": 3,
+      "start_time": "01:44:11",
+      "end_time": "01:44:30",
+      "description": "lane 3, with stop"
+    },
+    {
+      "id": "d2du_women_butterfly",
+      "video_id": "d2du",
+      "lane": 2,
+      "start_time": "01:59:23",
+      "end_time": "01:59:32",
+      "description": "lane 2, with stop"
+    },
+    {
+      "id": "d2du_women_backstroke",
+      "video_id": "d2du",
+      "lane": 4,
+      "start_time": "01:29:35",
+      "end_time": "01:29:49",
+      "description": "lane 4, right, pink"
+    },
+    {
+      "id": "testing_freestyle_men",
+      "video_id": "d2du",
+      "lane": 3,
+      "start_time": "00:21:22",
+      "end_time": "00:21:36",
+      "description": "no turn"
+    },
+    {
+      "id": "testing_breaststroke_men",
+      "video_id": "d3du",
+      "lane": 3,
+      "start_time": "00:56:12",
+      "end_time": "00:56:27",
+      "description": "no turn"
+    },
+    {
+      "id": "testing_another_pool",
+      "video_id": "2026_09_29_14_40_31",
+      "lane": 3,
+      "start_time": "00:02:35",
+      "end_time": "00:02:51",
+      "description": "kid turning in bad light conditions (reflection)"
+    },
+    {
+      "id": "testing_another_pool2",
+      "video_id": "2026_09_29_15_22_30",
+      "lane": 3,
+      "start_time": "00:00:41",
+      "end_time": "00:00:50",
+      "description": "kid breaststroke"
+    },
+    {
+      "id": "testing_another_pool3",
+      "video_id": "2026_09_29_15_25_18",
+      "lane": 2,
+      "start_time": "00:01:05",
+      "end_time": "00:01:15",
+      "description": "kid breaststroke"
+    },
+    {
+      "id": "testing_another_pool4",
+      "video_id": "2026_09_29_15_37_10",
+      "lane": 2,
+      "start_time": "00:00:50",
+      "end_time": "00:01:01",
+      "description": "kid backstroke"
+    }
+  ]
+}
