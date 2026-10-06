@@ -65,8 +65,9 @@ Page {
             }
             Item { Layout.fillWidth: true }
             Rectangle {
-                height: 26
-                width: stateRow.implicitWidth + 20
+                // implicit size: the RowLayout re-flows when the label changes ("Ready" -> "Loading model")
+                implicitHeight: 26
+                implicitWidth: stateRow.implicitWidth + 20
                 radius: 13
                 color: Theme.withAlpha(Theme.stateColor(page.playerState), 0.14)
                 border.color: Theme.withAlpha(Theme.stateColor(page.playerState), 0.5)

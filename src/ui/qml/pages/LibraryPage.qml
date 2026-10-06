@@ -200,8 +200,8 @@ Page {
                                 ]
                                 delegate: Rectangle {
                                     required property string modelData
-                                    width: chipText.implicitWidth + 14
-                                    height: 22
+                                    implicitWidth: chipText.implicitWidth + 14
+                                    implicitHeight: 22
                                     radius: 11
                                     color: Theme.surfaceRaised
                                     border.color: Theme.border
