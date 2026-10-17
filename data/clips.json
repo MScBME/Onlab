@@ -123,6 +123,13 @@
       "start_time": "00:00:50",
       "end_time": "00:01:01",
       "description": "kid backstroke"
+    },
+    {
+      "id": "2026_10_06_14_35_38_lane1_00_01_20",
+      "video_id": "2026_10_06_14_35_38",
+      "lane": 1,
+      "start_time": "00:01:20.252",
+      "end_time": "00:01:37.629"
     }
   ]
 }
