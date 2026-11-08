@@ -1,7 +1,7 @@
 import pytest
 
-from src.catalog.clips import create_clip, propose_clip, suggest_clip_id
-from src.catalog.repository import ClipRepository
+from swimmertracker.catalog.clips import create_clip, propose_clip, suggest_clip_id
+from swimmertracker.catalog.repository import ClipRepository
 
 
 def test_suggest_clip_id():

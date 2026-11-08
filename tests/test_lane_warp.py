@@ -2,15 +2,16 @@ import random
 
 import pytest
 
-from src.training import lane_processor
-from src.utils.config import read_json
-from src.utils.paths import VIDEOS_JSON
-from src.video import lane_warp
-from src.video.lane_warp import normalize_corners, validate_corners
+from research.paths import TEST_LIBRARY, TRAIN_LIBRARY
+from research.training import lane_processor
+from swimmertracker.utils.config import read_json
+from swimmertracker.video import lane_warp
+from swimmertracker.video.lane_warp import normalize_corners, validate_corners
 
 EXISTING_LANES = [
     (video["id"], lane["id"], lane["coordinates"])
-    for video in read_json(VIDEOS_JSON)["videos"]
+    for library in (TRAIN_LIBRARY, TEST_LIBRARY)
+    for video in read_json(library.videos_json)["videos"]
     for lane in video["lanes"]
 ]
 

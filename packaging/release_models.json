@@ -1,0 +1,9 @@
+{
+  "models": [
+    {
+      "name": "swimmer_all_v3",
+      "display_name": "All strokes",
+      "description": "Trained on every stroke and both genders (one swimmer per lane, head and upper torso)."
+    }
+  ]
+}

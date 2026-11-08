@@ -1,6 +1,6 @@
 import pytest
 
-from src.utils.timefmt import format_time, parse_time
+from swimmertracker.utils.timefmt import format_time, parse_time
 
 
 @pytest.mark.parametrize("text, seconds", [

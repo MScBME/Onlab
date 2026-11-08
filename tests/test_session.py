@@ -1,14 +1,19 @@
 import numpy as np
 import pytest
 
-from src.analysis.session import AnalysisSession, DetectionStatus
-from src.video.lane_warp import LANE_H
+from swimmertracker.analysis.session import AnalysisSession, DetectionStatus
+from swimmertracker.detection.types import Detection
+from swimmertracker.video.lane_warp import LANE_H
 
 LANE = [[0, 774], [90, 724], [1487, 713], [1548, 761]]
 
 
+def box(cy, conf=0.9):
+    return Detection(100.0, cy - 20, 156.0, cy + 20, conf)
+
+
 class ScriptedDetector:
-    """Returns detections whose centre y moves along the lane; None means 'no detection'."""
+    """Returns detections whose centre y moves along the lane. None means no detection."""
 
     def __init__(self, ys):
         self.ys = list(ys)
@@ -16,9 +21,7 @@ class ScriptedDetector:
 
     def detect(self, _warped):
         cy = self.ys.pop(0)
-        if cy is None:
-            return None
-        return (128.0, cy), (100, int(cy) - 20, 156, int(cy) + 20), 0.9
+        return [] if cy is None else [box(cy)]
 
 
 def test_statuses_positions_and_summary():
@@ -34,6 +37,7 @@ def test_statuses_positions_and_summary():
     assert detector.confidence == 0.35
     assert results[0].status == DetectionStatus.DETECTED
     assert results[0].position_m == pytest.approx(100 * 25.0 / LANE_H)
+    assert results[0].bbox == (100, 80, 156, 120)
     assert results[0].warped.shape == (LANE_H, 256, 3)
     assert [r.status for r in results[30:33]] == [DetectionStatus.PREDICTED] * 3
     assert all(r.point is not None for r in results)
@@ -54,3 +58,27 @@ def test_searching_before_first_detection_and_short_runs():
     session.process(frame, 0.033)
     summary = session.summary(completed=False)
     assert summary.avg_speed_m_s is None and summary.frames_detected == 0
+
+
+class ManyDetector:
+    confidence = None
+
+    def detect(self, _warped):
+        return [box(300, 0.6), box(500, 0.95), box(700, 0.7)]
+
+
+def test_default_selection_is_the_most_confident_detection():
+    session = AnalysisSession(ManyDetector(), LANE, 25.0, 0.4, start_sec=0.0)
+    result = session.process(np.zeros((1080, 1920, 3), np.uint8), 0.0)
+    assert result.confidence == 0.95
+    assert result.position_m == pytest.approx(500 * 25.0 / LANE_H)
+
+
+def test_selection_strategy_is_replaceable():
+    def lowest_in_lane(detections):
+        return min(detections, key=lambda d: d.center[1], default=None)
+
+    session = AnalysisSession(ManyDetector(), LANE, 25.0, 0.4, start_sec=0.0, select=lowest_in_lane)
+    result = session.process(np.zeros((1080, 1920, 3), np.uint8), 0.0)
+    assert result.confidence == 0.6
+    assert result.position_m == pytest.approx(300 * 25.0 / LANE_H)
