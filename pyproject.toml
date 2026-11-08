@@ -1,0 +1,65 @@
+[project]
+name = "swimmertracker"
+version = "0.1.0"
+description = "Swimmer speed tracking from pool video, a desktop app called Swimmer Tracker and the research code behind it."
+readme = "README.md"
+requires-python = ">=3.14"
+# What goes into the installer, no torch or ultralytics here.
+dependencies = [
+    "numpy>=2.0",
+    "opencv-contrib-python==4.13.0.92",  # the contrib build is one cv2 for everything, the legacy CSRT tracker included
+    "onnxruntime>=1.20",
+    "PySide6>=6.11.2,<6.12",
+]
+
+# Every command of the project
+[project.scripts]
+swimmertracker = "swimmertracker.ui.app:main"           # the desktop app
+train-extract = "research.training.extract:main"        # Pipeline 1: extract frames to annotate
+train-model = "research.training.train:main"            # Pipeline 2: download, split, train, evaluate and export
+eval-inference = "research.evaluation.inference:main"   # a model on a clip with the app's pipeline
+eval-pipeline = "research.evaluation.pipeline:main"     # speed signal processing levels on a clip
+eval-onnx = "research.evaluation.onnx_parity:main"      # a .pt model against its ONNX export on a clip
+csrt-track = "research.csrt.track:main"                 # legacy manual CSRT tracking
+
+[dependency-groups]
+dev = ["pytest>=8"]
+research = [
+    "ultralytics==8.4.26",
+    "torch==2.11.0",
+    "torchvision==0.26.0",
+    "roboflow==1.2.16",
+    "python-dotenv>=1.0",
+    "matplotlib>=3.8",
+    "pyyaml>=6.0",
+    "onnx>=1.17",
+    "onnxslim>=0.1.50",
+]
+build = ["pyinstaller>=6.16"]
+
+[tool.uv]
+default-groups = ["dev", "research"]
+# ultralytics asks for opencv-python, the cv2 of opencv-contrib-python replaces it.
+override-dependencies = [
+    "opencv-python ; sys_platform == 'never'",
+    "opencv-python-headless ; sys_platform == 'never'",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu126", marker = "sys_platform == 'win32' or sys_platform == 'linux'" }]
+torchvision = [{ index = "pytorch-cu126", marker = "sys_platform == 'win32' or sys_platform == 'linux'" }]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["swimmertracker", "research"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -3,8 +3,8 @@ import threading
 
 import pytest
 
-from src.catalog import library
-from src.catalog.library import (
+from swimmertracker.catalog import library
+from swimmertracker.catalog.library import (
     CopyCancelled,
     VideoLibrary,
     copy_with_progress,
@@ -13,8 +13,8 @@ from src.catalog.library import (
     suggest_video_id,
     validate_video_id,
 )
-from src.catalog.models import Lane, Video
-from src.catalog.repository import ClipRepository, VideoRepository
+from swimmertracker.catalog.models import Lane, Video
+from swimmertracker.utils.paths import LibraryPaths
 
 LANE_A = [[0, 774], [90, 724], [1487, 713], [1548, 761]]
 LANE_B = [[90, 724], [165, 685], [1438, 675], [1487, 713]]
@@ -33,16 +33,21 @@ def test_validate_video_id():
     assert validate_video_id("d2du_new", {"d2du"}) is None
 
 
+@pytest.mark.parametrize("video_id", ["d2du\n", "úszó", "d2du-2"])
+def test_video_id_is_ascii_word_characters_only(video_id):
+    assert validate_video_id(video_id, set()) is not None
+
+
 def test_import_target(tmp_path):
-    raw = tmp_path / "raw"
-    raw.mkdir()
-    inside = raw / "a.mp4"
+    videos = tmp_path / "videos"
+    videos.mkdir()
+    inside = videos / "a.mp4"
     inside.write_bytes(b"x")
-    assert import_target(inside, raw) == inside
+    assert import_target(inside, videos) == inside
 
     outside = tmp_path / "a.mp4"
     outside.write_bytes(b"y")
-    assert import_target(outside, raw) == raw / "a (2).mp4"
+    assert import_target(outside, videos) == videos / "a (2).mp4"
 
 
 def test_copy_with_progress_and_cancel(tmp_path, monkeypatch):
@@ -76,46 +81,54 @@ def test_prepare_lanes_normalizes_and_validates():
     assert any("length" in e for e in errors)
 
 
+@pytest.mark.parametrize("length_m", [float("nan"), float("inf"), -12.5])
+def test_lane_length_must_be_a_finite_positive_number(length_m):
+    _, errors = prepare_lanes([Lane(3, LANE_A, length_m)], None)
+    assert errors == ["The length of lane 3 must be a positive number of meters."]
+
+
 @pytest.fixture
-def lib(tmp_path, monkeypatch):
-    raw = tmp_path / "raw"
-    raw.mkdir()
-    (tmp_path / "videos.json").write_text(json.dumps({"videos": [
+def lib(tmp_path):
+    root = tmp_path / "library"
+    (root / "videos").mkdir(parents=True)
+    (root / "videos.json").write_text(json.dumps({"videos": [
         {"id": "v1", "path": "v1.mp4", "lanes": [
             {"id": 3, "coordinates": LANE_A}, {"id": 4, "coordinates": LANE_B}]},
     ]}))
-    (tmp_path / "events.json").write_text(json.dumps({"events": [
-        {"video_id": "v1", "lanes": [4], "start_time": "00:00:01", "end_time": "00:00:02"}]}))
-    (tmp_path / "event_frames.json").write_text(json.dumps({"event_frames": [
-        {"id": "v1_00_00_01_000", "lanes": [4]}, {"id": "v1_00_00_02_000", "lanes": [3, 4]}]}))
-    (tmp_path / "custom_frames.json").write_text(json.dumps({"custom_frames": []}))
-    monkeypatch.setattr(library, "EVENTS_JSON", tmp_path / "events.json")
-    monkeypatch.setattr(library, "EVENT_FRAMES_JSON", tmp_path / "event_frames.json")
-    monkeypatch.setattr(library, "CUSTOM_FRAMES_JSON", tmp_path / "custom_frames.json")
-    return VideoLibrary(VideoRepository(tmp_path / "videos.json", raw), ClipRepository(tmp_path / "clips.json"))
+    (root / "clips.json").write_text(json.dumps({"clips": [
+        {"id": "c1", "video_id": "v1", "lane": 4, "start_time": "00:00:01", "end_time": "00:00:02"},
+        {"id": "c2", "video_id": "v1", "lane": 4, "start_time": "00:00:03", "end_time": "00:00:04"}]}))
+    return VideoLibrary.open(LibraryPaths(root))
+
+
+def test_library_layout(lib, tmp_path):
+    assert lib.videos.path == tmp_path / "library" / "videos.json"
+    assert lib.videos.videos_dir == tmp_path / "library" / "videos"
+    assert lib.clips.path == tmp_path / "library" / "clips.json"
 
 
 def test_lane_references(lib):
     refs = lib.lane_references("v1", 4)
-    assert (refs.events, refs.event_frames, refs.custom_frames) == (1, 2, 0)
-    assert refs.describe() == "1 training event, 2 training frames"
-    assert not lib.lane_references("v1", 7).any
+    assert refs.clips == ["c1", "c2"]
+    assert refs.describe() == "2 clips"
+    assert not lib.lane_references("v1", 3).any
+    assert lib.lane_references("v1", 3).describe() == ""
+    assert library.LaneReferences(clips=["c1"]).describe() == "1 clip"
 
 
 def test_referenced_lane_cannot_be_removed(lib):
-    with pytest.raises(ValueError, match="Lane 4 cannot be removed"):
+    with pytest.raises(ValueError, match="Lane 4 is used by 2 clips and cannot be removed"):
         lib.save_lanes("v1", [Lane(3, LANE_A)])
 
 
-def test_unreferenced_lane_can_be_removed_and_edited(lib, tmp_path):
-    (tmp_path / "event_frames.json").write_text(json.dumps({"event_frames": [{"id": "v1_00_00_01_000", "lanes": [4]}]}))
+def test_unreferenced_lane_can_be_removed_and_edited(lib):
     video = lib.save_lanes("v1", [Lane(4, LANE_B, 50.0)])
     assert [lane.id for lane in video.lanes] == [4]
     assert lib.videos.get("v1").lanes[0].length_m == 50.0
 
 
-def test_add_video_requires_file_in_raw_dir_and_unique_id(lib, tmp_path):
-    inside = lib.videos.raw_dir / "new.mp4"
+def test_add_video_requires_file_in_videos_dir_and_unique_id(lib, tmp_path):
+    inside = lib.videos.videos_dir / "new.mp4"
     inside.write_bytes(b"x")
     with pytest.raises(ValueError, match="already exists"):
         lib.add_video("v1", inside, [Lane(1, LANE_A)])

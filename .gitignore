@@ -5,19 +5,25 @@ __pycache__/
 .venv/
 /.onlab_venv/
 
-# Data
-data/raw/*
-training_cache/
+# Video libraries, the catalogs videos.json and clips.json are tracked but the video files are not
+data/videos/
+research/training/library/videos/
+*.mp4
+*.mov
+
+# Training cache and evaluation output
+research/training/cache/
+research/evaluation/output/
 
 # Model files
 models/*
 !models/.gitkeep
 *.onnx
-/yolo*.pt
+*.pt
 
-# Media
-*.mp4
-*.mov
+# Packaging output
+packaging/build/
+packaging/dist/
 
 # Secrets
 .env

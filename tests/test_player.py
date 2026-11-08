@@ -5,8 +5,9 @@ import cv2
 import numpy as np
 import pytest
 
-from src.analysis.session import AnalysisParams
-from src.playback.player import Player, PlayerListener, PlayerState
+from swimmertracker.analysis.session import AnalysisParams
+from swimmertracker.detection.types import Detection
+from swimmertracker.playback.player import Player, PlayerListener, PlayerState
 
 FPS = 30
 W, H = 320, 180
@@ -33,7 +34,7 @@ class FakeDetector:
     def detect(self, _warped):
         self.calls += 1
         cy = 100.0 + 8 * self.calls
-        return (128.0, cy), (100, int(cy) - 10, 156, int(cy) + 10), 0.8
+        return [Detection(100.0, cy - 10, 156.0, cy + 10, 0.8)]
 
 
 class Recorder(PlayerListener):
