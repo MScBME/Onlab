@@ -1,3 +1,41 @@
-/res/
-/onlab_venv/
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+/.onlab_venv/
+
+# Video libraries, the catalogs videos.json and clips.json are tracked but the video files are not
+data/videos/
+research/training/library/videos/
+*.mp4
+*.mov
+
+# Training cache and evaluation output
+research/training/cache/
+research/evaluation/output/
+
+# Model files
+models/*
+!models/.gitkeep
+*.onnx
 *.pt
+
+# Packaging output
+packaging/build/
+packaging/dist/
+
+# Secrets
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Claude Code
+.claude/
+CLAUDE.md
