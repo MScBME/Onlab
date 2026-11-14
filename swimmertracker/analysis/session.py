@@ -1,5 +1,7 @@
-"""Per frame swimmer analysis of one lane. Each frame is warped, the swimmer is detected on it, and a Kalman filter
-gives the position and the speed.
+"""Per frame swimmer analysis of one lane.
+
+Each full frame is passed to the detector, detections overlapping the target lane are filtered and ranked by lane
+overlap (then confidence), and a Kalman filter smooths position and speed along the lane.
 
 The module is independent of the UI. It produces plain data in FrameResult and AnalysisSummary, drawing is up to
 the caller.
@@ -13,7 +15,6 @@ import cv2
 import numpy as np
 
 from swimmertracker.analysis.speed import smooth_and_cap_speed
-from swimmertracker.detection.types import highest_confidence
 from swimmertracker.tracking.kalman_filter import SwimmerKalmanFilter1D
 from swimmertracker.video.lane_warp import DST_PTS, LANE_H, LANE_W, lane_homography, warp_lane
 
@@ -44,7 +45,8 @@ class FrameResult:
     warped: Optional[np.ndarray] = None
     status: Optional[DetectionStatus] = None  # None in preview, when no analysis is running
     confidence: Optional[float] = None
-    bbox: Optional[tuple] = None  # x1, y1, x2, y2 in warped lane pixels
+    bbox: Optional[tuple] = None  # x1, y1, x2, y2 in original frame pixels
+    warped_bbox: Optional[tuple] = None  # x1, y1, x2, y2 in warped lane pixels
     point: Optional[tuple] = None  # detected or predicted swimmer point in original frame pixels
     position_m: Optional[float] = None
     speed_m_s: Optional[float] = None
@@ -78,11 +80,42 @@ def lane_preview(frame: np.ndarray, lane_coords) -> np.ndarray:
     return warp_lane(frame, lane_homography(lane_coords))
 
 
+def _transform_point(matrix: np.ndarray, x: float, y: float) -> tuple:
+    pt = cv2.perspectiveTransform(np.array([[[x, y]]], dtype=np.float32), matrix)[0][0]
+    return float(pt[0]), float(pt[1])
+
+
+def lane_overlap(detection, lane_hull: np.ndarray) -> float:
+    """Fraction of ``detection``'s bounding box area inside ``lane_hull`` (0.0 .. 1.0)."""
+    area = max(0.0, detection.x2 - detection.x1) * max(0.0, detection.y2 - detection.y1)
+    if area <= 0.0:
+        return 0.0
+    box = np.array(
+        [[detection.x1, detection.y1], [detection.x2, detection.y1],
+         [detection.x2, detection.y2], [detection.x1, detection.y2]],
+        dtype=np.float32,
+    )
+    inter, _ = cv2.intersectConvexConvex(box, lane_hull)
+    return float(min(1.0, inter / area))
+
+
+def select_most_in_lane(detections: list, lane_hull: np.ndarray):
+    """Pick the detection that overlaps ``lane_hull`` the most, breaking ties by confidence."""
+    best = None
+    best_key = (0.0, -1.0)
+    for det in detections:
+        overlap = lane_overlap(det, lane_hull)
+        if overlap > 0.0 and (overlap, det.confidence) > best_key:
+            best = det
+            best_key = (overlap, det.confidence)
+    return best
+
+
 class AnalysisSession:
-    """``select`` picks the lane's swimmer from all detections of a frame, or returns None if there is no swimmer."""
+    """Runs full-frame detection and tracks the swimmer overlapping the target lane."""
 
     def __init__(self, detector, lane_coords, lane_length_m: float, confidence: float, start_sec: float,
-                 run_id: int = 0, select: Callable = highest_confidence):
+                 run_id: int = 0, select: Optional[Callable] = None):
         self.run_id = run_id
         self.detector = detector
         self.detector.confidence = confidence
@@ -91,6 +124,7 @@ class AnalysisSession:
         self.start_sec = start_sec
         self.matrix = lane_homography(lane_coords)
         self.matrix_inv = cv2.getPerspectiveTransform(DST_PTS, np.array(lane_coords, dtype=np.float32))
+        self._lane_hull = cv2.convexHull(np.array(lane_coords, dtype=np.float32))
 
         self.kf: Optional[SwimmerKalmanFilter1D] = None
         self.frames_processed = 0
@@ -99,18 +133,26 @@ class AnalysisSession:
         self.raw_timestamps = []
 
     def _to_original(self, x: float, y: float) -> tuple:
-        pt = cv2.perspectiveTransform(np.array([[[x, y]]], dtype=np.float32), self.matrix_inv)[0][0]
-        return float(pt[0]), float(pt[1])
+        return _transform_point(self.matrix_inv, x, y)
+
+    def _to_warped(self, x: float, y: float) -> tuple:
+        return _transform_point(self.matrix, x, y)
 
     def process(self, frame: np.ndarray, timestamp: float) -> FrameResult:
+        detections = self.detector.detect(frame)
+        if self.select is None:
+            detection = select_most_in_lane(detections, self._lane_hull)
+        else:
+            detection = self.select([d for d in detections if lane_overlap(d, self._lane_hull) > 0.0])
+
         warped = warp_lane(frame, self.matrix)
-        detection = self.select(self.detector.detect(warped))
         result = FrameResult(timestamp=timestamp, frame=frame, warped=warped, status=DetectionStatus.SEARCHING,
                              run_id=self.run_id)
 
         if detection is not None:
             cx, cy = detection.center
-            pos_m = cy * (self.lane_length_m / LANE_H)
+            _, wy = self._to_warped(cx, cy)
+            pos_m = wy * (self.lane_length_m / LANE_H)
             if self.kf is None:
                 self.kf = SwimmerKalmanFilter1D(pos_m, timestamp)
             else:
@@ -121,7 +163,15 @@ class AnalysisSession:
             result.status = DetectionStatus.DETECTED
             result.confidence = detection.confidence
             result.bbox = tuple(int(v) for v in detection.bbox)
-            result.point = self._to_original(cx, cy)
+            corners = np.array([[[detection.x1, detection.y1], [detection.x2, detection.y1],
+                                 [detection.x2, detection.y2], [detection.x1, detection.y2]]], dtype=np.float32)
+            projected = cv2.perspectiveTransform(corners, self.matrix)[0]
+            wx1 = float(np.clip(projected[:, 0].min(), 0, LANE_W))
+            wy1 = float(np.clip(projected[:, 1].min(), 0, LANE_H))
+            wx2 = float(np.clip(projected[:, 0].max(), 0, LANE_W))
+            wy2 = float(np.clip(projected[:, 1].max(), 0, LANE_H))
+            result.warped_bbox = (int(round(wx1)), int(round(wy1)), int(round(wx2)), int(round(wy2)))
+            result.point = (float(cx), float(cy))
             result.position_m = pos_m
         elif self.kf is not None:
             pos_m, _ = self.kf.predict(timestamp)

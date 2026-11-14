@@ -75,11 +75,21 @@ def to_image_coords(rows: np.ndarray, gain: float, pad: tuple, image_shape: tupl
     return rows
 
 
+def resolve_providers(preferred=None) -> list:
+    """Pick GPU providers (CUDA, DirectML) if available, falling back to CPU."""
+    if preferred:
+        return preferred
+    available = ort.get_available_providers()
+    providers = [p for p in ("CUDAExecutionProvider", "DmlExecutionProvider") if p in available]
+    providers.append("CPUExecutionProvider")
+    return providers
+
+
 class OnnxDetector:
     def __init__(self, model_path: Path, confidence: float = 0.5, iou: float = DEFAULT_IOU, providers=None):
         options = ort.SessionOptions()
         options.log_severity_level = 3
-        self.session = ort.InferenceSession(str(model_path), options, providers=providers or ["CPUExecutionProvider"])
+        self.session = ort.InferenceSession(str(model_path), options, providers=resolve_providers(providers))
         model_input = self.session.get_inputs()[0]
         self.input_name = model_input.name
         _, _, height, width = model_input.shape

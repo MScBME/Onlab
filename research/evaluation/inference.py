@@ -18,20 +18,26 @@ GREEN, ORANGE, BLUE, RED = (0, 255, 0), (0, 165, 255), (255, 0, 0), (0, 0, 255)
 
 def show(result, lane_coords) -> bool:
     """Draw one analysed frame and return True when Esc was pressed."""
-    frame, warped = result.frame.copy(), result.warped.copy()
+    frame = result.frame.copy()
+    pts = np.array(lane_coords, np.int32).reshape((-1, 1, 2))
+    cv2.polylines(frame, [pts], isClosed=True, color=BLUE, thickness=2)
     if result.bbox:
         x1, y1, x2, y2 = result.bbox
-        cv2.rectangle(warped, (x1, y1), (x2, y2), GREEN, 2)
-        cv2.putText(warped, f"{result.confidence:.2f}", (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, GREEN, 1)
+        cv2.rectangle(frame, (x1, y1), (x2, y2), GREEN, 2)
+        cv2.putText(frame, f"{result.confidence:.2f}", (x1, max(15, y1 - 5)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, GREEN, 1)
     if result.point:
         color = GREEN if result.status == DetectionStatus.DETECTED else ORANGE
         cv2.circle(frame, (int(result.point[0]), int(result.point[1])), 5, color, -1)
     if result.status != DetectionStatus.DETECTED:
         cv2.putText(frame, "No detection", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, RED, 2)
-    pts = np.array(lane_coords, np.int32).reshape((-1, 1, 2))
-    cv2.polylines(frame, [pts], isClosed=True, color=BLUE, thickness=2)
     cv2.imshow("Original", frame)
-    cv2.imshow("Lane bird's-eye view", warped)
+    if result.warped is not None:
+        warped = result.warped.copy()
+        if result.warped_bbox:
+            wx1, wy1, wx2, wy2 = result.warped_bbox
+            cv2.rectangle(warped, (wx1, wy1), (wx2, wy2), GREEN, 2)
+            cv2.putText(warped, f"{result.confidence:.2f}", (wx1, max(15, wy1 - 5)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, GREEN, 1)
+        cv2.imshow("Lane bird's-eye view", warped)
     return cv2.waitKey(1) & 0xFF == 27
 
 

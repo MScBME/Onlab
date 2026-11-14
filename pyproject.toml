@@ -8,7 +8,8 @@ requires-python = ">=3.14"
 dependencies = [
     "numpy>=2.0",
     "opencv-contrib-python==4.13.0.92",  # the contrib build is one cv2 for everything, the legacy CSRT tracker included
-    "onnxruntime>=1.20",
+    "onnxruntime-directml>=1.20 ; sys_platform == 'win32'",
+    "onnxruntime>=1.20 ; sys_platform != 'win32'",
     "PySide6>=6.11.2,<6.12",
 ]
 

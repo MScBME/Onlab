@@ -237,7 +237,13 @@ def test_full_frame_model_metadata_and_export_shape(tmp_path: Path):
     onnx_file = tmp_path / "swimmer_ff.onnx"
     onnx_file.write_bytes(b"onnx")
     onnx_file.with_suffix(".json").write_text(json.dumps({"input": full_frame_input(1024)}), encoding="utf-8")
-    assert list_models(tmp_path) == []
+    models = list_models(tmp_path)
+    assert [m.name for m in models] == ["swimmer_ff"]
+
+    legacy_file = tmp_path / "swimmer_warped.onnx"
+    legacy_file.write_bytes(b"onnx")
+    legacy_file.with_suffix(".json").write_text(json.dumps({"input": {"type": "lane_warp"}}), encoding="utf-8")
+    assert [m.name for m in list_models(tmp_path)] == ["swimmer_ff"]
 
 
 def test_parse_results_csv_and_metadata_helpers(tmp_path: Path):

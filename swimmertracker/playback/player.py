@@ -13,7 +13,6 @@ from typing import Optional
 import numpy as np
 
 from swimmertracker.analysis.session import AnalysisParams, AnalysisSession, AnalysisSummary, FrameResult, lane_preview
-from swimmertracker.video.lane_warp import LANE_H, LANE_W
 from swimmertracker.video.loader import VideoInfo, VideoLoader
 
 LAG_RESYNC_S = 0.25  # if playback falls this far behind real time, re-anchor instead of rushing
@@ -240,7 +239,7 @@ class Player:
             detector = self._detector_factory(params.model_path)
             # The first inference allocates and optimizes the graph, which can take a moment.
             # Doing it here shows it as loading instead of a frozen analysis.
-            detector.detect(np.zeros((LANE_H, LANE_W, 3), dtype=np.uint8))
+            detector.detect(np.zeros((self._info.height, self._info.width, 3), dtype=np.uint8))
             self._detectors[key] = detector
         self._params = params
         self._session = AnalysisSession(

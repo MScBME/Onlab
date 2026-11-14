@@ -1,13 +1,13 @@
 """Models the app can run, the <name>.onnx files of the models folder, each with an optional <name>.json metadata file.
 
 The training writes the metadata file, see research/training/model_metadata.py. It gives the name shown in the UI
-and the input type of the model. Only lane_warp models, which detect on the warped lane image, are supported here.
+and the input type of the model. Only full_frame models, which detect on the full video frame, are supported here.
 """
 import json
 from dataclasses import dataclass
 from pathlib import Path
 
-SUPPORTED_INPUT = "lane_warp"
+SUPPORTED_INPUT = "full_frame"
 
 
 @dataclass(frozen=True)

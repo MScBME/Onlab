@@ -110,6 +110,7 @@ class WorkspaceController(QObject):
 
     swimmerPoint = ro("QVariantList", "_point", overlayChanged)
     bbox = ro("QVariantList", "_bbox", overlayChanged)
+    warpedBbox = ro("QVariantList", "_warped_bbox", overlayChanged)
 
     summary = ro("QVariantMap", "_summary", summaryChanged)
     smoothedSeries = ro("QVariantList", "_smoothed", summaryChanged)
@@ -160,6 +161,7 @@ class WorkspaceController(QObject):
         self._elapsed = 0.0
         self._point = []
         self._bbox = []
+        self._warped_bbox = []
         self._summary = {}
         self._smoothed = []
         self._chart_duration = max(MIN_RANGE_S, self._range_end - self._range_start)
@@ -269,8 +271,8 @@ class WorkspaceController(QObject):
         self.positionChanged.emit()
 
         if result.run_id is None:
-            if self._point or self._bbox:
-                self._point, self._bbox = [], []
+            if self._point or self._bbox or self._warped_bbox:
+                self._point, self._bbox, self._warped_bbox = [], [], []
                 self.overlayChanged.emit()
             return
         if result.run_id != self._run_id:
@@ -283,6 +285,7 @@ class WorkspaceController(QObject):
         self._elapsed = max(0.0, result.timestamp - self._active_start)
         self._point = list(result.point) if result.point else []
         self._bbox = list(result.bbox) if result.bbox else []
+        self._warped_bbox = list(result.warped_bbox) if result.warped_bbox else []
         self.telemetryChanged.emit()
         self.overlayChanged.emit()
 

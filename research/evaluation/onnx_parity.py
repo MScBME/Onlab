@@ -15,7 +15,6 @@ from research.evaluation.clips import clip_from_args, load_run_config, resolve_p
 from research.evaluation.ultralytics_detector import UltralyticsDetector
 from swimmertracker.analysis.session import AnalysisSession, DetectionStatus
 from swimmertracker.detection.onnx_detector import OnnxDetector
-from swimmertracker.video.lane_warp import LANE_H, LANE_W
 from swimmertracker.video.loader import VideoLoader
 
 # Thresholds within which the two models count as the same
@@ -65,7 +64,7 @@ def compare(pt_path: Path, onnx_path: Path, ctx, confidence: float) -> dict:
         "pt": TimedDetector(UltralyticsDetector(pt_path, confidence)),
         "onnx": TimedDetector(OnnxDetector(onnx_path, confidence)),
     }
-    warm = np.zeros((LANE_H, LANE_W, 3), np.uint8)
+    warm = np.zeros((*detectors["onnx"].inner.input_size, 3), np.uint8)
     for d in detectors.values():
         d.detect(warm)
         d.seconds.clear()
