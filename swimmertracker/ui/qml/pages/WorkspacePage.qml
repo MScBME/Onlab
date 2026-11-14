@@ -452,6 +452,19 @@ Page {
                                 font.family: Theme.mono
                             }
                         }
+
+                        Label { text: "Frame skip"; color: Theme.textDim }
+                        ComboBox {
+                            id: skipBox
+                            Layout.fillWidth: true
+                            model: ["None (every frame)", "Skip 1 frame", "Skip 2 frames", "Skip 3 frames"]
+                            onActivated: (i) => workspace.setFrameSkip(i)
+                            Binding {
+                                target: skipBox
+                                property: "currentIndex"
+                                value: workspace.frameSkip
+                            }
+                        }
                     }
 
                     RowLayout {

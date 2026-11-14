@@ -18,9 +18,11 @@ from swimmertracker.video.loader import VideoInfo
 
 MIN_RANGE_S = 0.1
 DEFAULT_CONFIDENCE = 0.4
+DEFAULT_FRAME_SKIP = 0
 RUNNING_STATES = ("loading", "analyzing", "paused")
 MODEL_KEY = "workspace/model"
 CONFIDENCE_KEY = "workspace/confidence"
+FRAME_SKIP_KEY = "workspace/frame_skip"
 
 
 class WorkspaceController(QObject):
@@ -70,6 +72,7 @@ class WorkspaceController(QObject):
         self._model_paths = {}
         self._model_name = ""
         self._confidence = DEFAULT_CONFIDENCE
+        self._frame_skip = DEFAULT_FRAME_SKIP
         self._lane_id = -1
         self._load_defaults()
 
@@ -99,6 +102,7 @@ class WorkspaceController(QObject):
     modelLabels = ro("QVariantList", "_model_labels", settingsChanged)
     modelName = ro(str, "_model_name", settingsChanged)
     confidence = ro(float, "_confidence", settingsChanged)
+    frameSkip = ro(int, "_frame_skip", settingsChanged)
     laneId = ro(int, "_lane_id", settingsChanged)
 
     speed = ro(float, "_speed", telemetryChanged)
@@ -119,7 +123,7 @@ class WorkspaceController(QObject):
     clips = ro("QVariantList", "_clips", clipsChanged)
 
     def _settings(self) -> tuple:
-        return (self._lane_id, self._model_name, round(self._confidence, 3),
+        return (self._lane_id, self._model_name, round(self._confidence, 3), self._frame_skip,
                 round(self._range_start, 3), round(self._range_end, 3))
 
     def _dirty(self) -> bool:
@@ -142,6 +146,10 @@ class WorkspaceController(QObject):
             self._confidence = float(self._store.value(CONFIDENCE_KEY, DEFAULT_CONFIDENCE))
         except (TypeError, ValueError):
             self._confidence = DEFAULT_CONFIDENCE
+        try:
+            self._frame_skip = int(self._store.value(FRAME_SKIP_KEY, DEFAULT_FRAME_SKIP))
+        except (TypeError, ValueError):
+            self._frame_skip = DEFAULT_FRAME_SKIP
         self._refresh_models()
 
     def _refresh_models(self):
@@ -407,6 +415,14 @@ class WorkspaceController(QObject):
             self._store.setValue(CONFIDENCE_KEY, value)
             self.settingsChanged.emit()
 
+    @Slot(int)
+    def setFrameSkip(self, value: int):
+        value = max(0, min(int(value), 5))
+        if value != self._frame_skip:
+            self._frame_skip = value
+            self._store.setValue(FRAME_SKIP_KEY, value)
+            self.settingsChanged.emit()
+
     # ---- analysis ----------------------------------------------------------------------
     @Slot()
     def analyze(self):
@@ -429,6 +445,7 @@ class WorkspaceController(QObject):
             model_path=self._model_paths[self._model_name],
             confidence=self._confidence,
             run_id=self._run_id,
+            frame_skip=self._frame_skip,
         )
         self._bridge.player.set_preview_lane(lane.coordinates)
         self._bridge.player.start_analysis(params)

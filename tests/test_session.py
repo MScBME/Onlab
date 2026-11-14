@@ -123,3 +123,43 @@ def test_selection_strategy_is_replaceable():
                               start_sec=0.0, select=lowest_in_lane)
     result = session.process(np.zeros((1080, 1920, 3), np.uint8), 0.0)
     assert result.confidence == pytest.approx(small_oy.confidence)
+
+
+def test_frame_skip_keeps_searching_until_detected_then_skips():
+    # When searching (kf is None), detector should run every frame even with frame_skip > 0
+    # Once detected, it skips frame_skip frames between detector invocations
+    ys = [None, None, 100, 102]
+    detector = ScriptedDetector(ys)
+    session = AnalysisSession(detector, LANE, lane_length_m=25.0, confidence=0.4, start_sec=0.0, frame_skip=1)
+    frame = np.zeros((1080, 1920, 3), np.uint8)
+
+    # Frame 0: searching (detector runs)
+    r0 = session.process(frame, 0.0)
+    assert r0.status == DetectionStatus.SEARCHING
+    assert len(detector.seen_shapes) == 1
+
+    # Frame 1: still searching (detector runs again because kf is None)
+    r1 = session.process(frame, 0.033)
+    assert r1.status == DetectionStatus.SEARCHING
+    assert len(detector.seen_shapes) == 2
+
+    # Frame 2: first detection (detector runs)
+    r2 = session.process(frame, 0.066)
+    assert r2.status == DetectionStatus.DETECTED
+    assert len(detector.seen_shapes) == 3
+    assert r2.bbox is not None
+    assert r2.warped_bbox is not None
+
+    # Frame 3: skipped (kf is active, frame_skip=1 -> detector is NOT called)
+    r3 = session.process(frame, 0.1)
+    assert r3.status == DetectionStatus.PREDICTED
+    assert len(detector.seen_shapes) == 3
+    assert r3.bbox is not None
+    assert r3.warped_bbox is not None
+    assert r3.position_m is not None
+
+    # Frame 4: detector runs again
+    r4 = session.process(frame, 0.133)
+    assert r4.status == DetectionStatus.DETECTED
+    assert len(detector.seen_shapes) == 4
+

@@ -36,6 +36,7 @@ class AnalysisParams:
     model_path: Path
     confidence: float
     run_id: int = 0  # lets consumers drop results that belong to an earlier run
+    frame_skip: int = 0  # number of frames to skip between detections (0 = every frame)
 
 
 @dataclass
@@ -115,13 +116,16 @@ class AnalysisSession:
     """Runs full-frame detection and tracks the swimmer overlapping the target lane."""
 
     def __init__(self, detector, lane_coords, lane_length_m: float, confidence: float, start_sec: float,
-                 run_id: int = 0, select: Optional[Callable] = None):
+                 run_id: int = 0, select: Optional[Callable] = None, frame_skip: int = 0):
         self.run_id = run_id
         self.detector = detector
         self.detector.confidence = confidence
         self.select = select
         self.lane_length_m = float(lane_length_m)
         self.start_sec = start_sec
+        self.frame_skip = max(0, int(frame_skip))
+        self._frames_since_detect = 0
+        self._last_warped_half = None
         self.matrix = lane_homography(lane_coords)
         self.matrix_inv = cv2.getPerspectiveTransform(DST_PTS, np.array(lane_coords, dtype=np.float32))
         self._lane_hull = cv2.convexHull(np.array(lane_coords, dtype=np.float32))
@@ -139,17 +143,22 @@ class AnalysisSession:
         return _transform_point(self.matrix, x, y)
 
     def process(self, frame: np.ndarray, timestamp: float) -> FrameResult:
-        detections = self.detector.detect(frame)
-        if self.select is None:
-            detection = select_most_in_lane(detections, self._lane_hull)
-        else:
-            detection = self.select([d for d in detections if lane_overlap(d, self._lane_hull) > 0.0])
-
         warped = warp_lane(frame, self.matrix)
         result = FrameResult(timestamp=timestamp, frame=frame, warped=warped, status=DetectionStatus.SEARCHING,
                              run_id=self.run_id)
 
+        # Run detector when searching or when the skip interval elapsed
+        should_detect = self.frame_skip <= 0 or self.kf is None or self._frames_since_detect >= self.frame_skip
+        detection = None
+        if should_detect:
+            detections = self.detector.detect(frame)
+            if self.select is None:
+                detection = select_most_in_lane(detections, self._lane_hull)
+            else:
+                detection = self.select([d for d in detections if lane_overlap(d, self._lane_hull) > 0.0])
+
         if detection is not None:
+            self._frames_since_detect = 0
             cx, cy = detection.center
             _, wy = self._to_warped(cx, cy)
             pos_m = wy * (self.lane_length_m / LANE_H)
@@ -170,15 +179,31 @@ class AnalysisSession:
             wy1 = float(np.clip(projected[:, 1].min(), 0, LANE_H))
             wx2 = float(np.clip(projected[:, 0].max(), 0, LANE_W))
             wy2 = float(np.clip(projected[:, 1].max(), 0, LANE_H))
+            self._last_warped_half = (max(5.0, (wx2 - wx1) / 2), max(5.0, (wy2 - wy1) / 2))
             result.warped_bbox = (int(round(wx1)), int(round(wy1)), int(round(wx2)), int(round(wy2)))
             result.point = (float(cx), float(cy))
             result.position_m = pos_m
         elif self.kf is not None:
+            if not should_detect:
+                self._frames_since_detect += 1
+            else:
+                self._frames_since_detect = 0
             pos_m, _ = self.kf.predict(timestamp)
             pred_cy = float(np.clip(pos_m * (LANE_H / self.lane_length_m), 0, LANE_H))
             result.status = DetectionStatus.PREDICTED
             result.point = self._to_original(LANE_W / 2, pred_cy)
             result.position_m = pos_m
+            if self._last_warped_half is not None:
+                hw, hh = self._last_warped_half
+                wx1 = float(np.clip(LANE_W / 2 - hw, 0, LANE_W))
+                wy1 = float(np.clip(pred_cy - hh, 0, LANE_H))
+                wx2 = float(np.clip(LANE_W / 2 + hw, 0, LANE_W))
+                wy2 = float(np.clip(pred_cy + hh, 0, LANE_H))
+                result.warped_bbox = (int(round(wx1)), int(round(wy1)), int(round(wx2)), int(round(wy2)))
+                corners = np.array([[[wx1, wy1], [wx2, wy1], [wx2, wy2], [wx1, wy2]]], dtype=np.float32)
+                orig_pts = cv2.perspectiveTransform(corners, self.matrix_inv)[0]
+                result.bbox = (int(round(orig_pts[:, 0].min())), int(round(orig_pts[:, 1].min())),
+                               int(round(orig_pts[:, 0].max())), int(round(orig_pts[:, 1].max())))
 
         result.speed_m_s = self.kf.get_speed() if self.kf is not None else 0.0
         self.frames_processed += 1

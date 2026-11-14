@@ -244,7 +244,7 @@ class Player:
         self._params = params
         self._session = AnalysisSession(
             self._detectors[key], params.lane_coords, params.lane_length_m, params.confidence, params.start_sec,
-            run_id=params.run_id,
+            run_id=params.run_id, frame_skip=params.frame_skip,
         )
         self._loader.seek(self._clamp(params.start_sec))
         self._reset_clock()
