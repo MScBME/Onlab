@@ -7,6 +7,8 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
+from typing import Optional
+
 SUPPORTED_INPUT = "full_frame"
 
 
@@ -24,11 +26,12 @@ def read_metadata(onnx_path: Path) -> dict:
         return {}
 
 
-def list_models(models_dir: Path) -> list:
+def list_models(models_dir: Path, input_type: Optional[str] = SUPPORTED_INPUT) -> list:
     models = []
     for path in sorted(Path(models_dir).glob("*.onnx")):
         metadata = read_metadata(path)
-        if metadata.get("input", {}).get("type", SUPPORTED_INPUT) != SUPPORTED_INPUT:
+        m_type = metadata.get("input", {}).get("type", SUPPORTED_INPUT)
+        if input_type is not None and m_type != input_type:
             continue
         models.append(ModelInfo(name=path.stem, path=path, display_name=metadata.get("display_name") or path.stem))
     return models

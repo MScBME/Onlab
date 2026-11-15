@@ -51,6 +51,8 @@ def main():
                         help="Confidence threshold, default confidence_threshold of research/run_config.json")
     parser.add_argument("--frame-skip", type=int, default=0,
                         help="Number of frames to skip between detections (0 = every frame)")
+    parser.add_argument("--legacy", action="store_true",
+                        help="Run legacy warp-then-detect pipeline instead of new full-frame detection")
     parser.add_argument("--no-show", action="store_true", help="No tracking windows and no speed plot")
     args = parser.parse_args()
 
@@ -65,7 +67,7 @@ def main():
           f"model {model_path.name}")
     detector = make_detector(model_path, confidence)
     session = AnalysisSession(detector, ctx.lane.coordinates, ctx.lane.length_m, confidence, clip.start_sec,
-                              frame_skip=args.frame_skip)
+                              frame_skip=args.frame_skip, legacy=args.legacy)
     loader = VideoLoader(str(ctx.video_path), start_sec=clip.start_sec, end_sec=clip.end_sec)
 
     completed = True

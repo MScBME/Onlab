@@ -402,6 +402,19 @@ Page {
                         columnSpacing: 10
                         rowSpacing: 8
 
+                        Label { text: "Pipeline"; color: Theme.textDim }
+                        ComboBox {
+                            id: pipelineBox
+                            Layout.fillWidth: true
+                            model: ["New (full frame)", "Legacy (lane warp)"]
+                            onActivated: (i) => workspace.setLegacyPipeline(i === 1)
+                            Binding {
+                                target: pipelineBox
+                                property: "currentIndex"
+                                value: workspace.legacyPipeline ? 1 : 0
+                            }
+                        }
+
                         Label { text: "Lane"; color: Theme.textDim }
                         ComboBox {
                             id: laneBox
@@ -453,10 +466,15 @@ Page {
                             }
                         }
 
-                        Label { text: "Frame skip"; color: Theme.textDim }
+                        Label {
+                            text: "Frame skip"
+                            color: workspace.legacyPipeline ? Theme.textFaint : Theme.textDim
+                        }
                         ComboBox {
                             id: skipBox
                             Layout.fillWidth: true
+                            enabled: !workspace.legacyPipeline
+                            opacity: workspace.legacyPipeline ? 0.5 : 1.0
                             model: ["None (every frame)", "Skip 1 frame", "Skip 2 frames", "Skip 3 frames"]
                             onActivated: (i) => workspace.setFrameSkip(i)
                             Binding {

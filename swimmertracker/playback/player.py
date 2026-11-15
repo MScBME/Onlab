@@ -88,6 +88,9 @@ class Player:
     def start_analysis(self, params: AnalysisParams):
         self._post("start", params)
 
+    def set_frame_skip(self, frame_skip: int):
+        self._post("frame_skip", int(frame_skip))
+
     def stop(self):
         self._post("stop")
 
@@ -115,6 +118,7 @@ class Player:
             "pause": self._cmd_pause,
             "resume": self._cmd_resume,
             "start": self._start,
+            "frame_skip": self._cmd_frame_skip,
             "stop": self._cmd_stop,
             "release": self._cmd_release,
         }
@@ -172,6 +176,10 @@ class Player:
         if self._state == PlayerState.PAUSED:
             self._reset_clock()
             self._set_state(PlayerState.ANALYZING)
+
+    def _cmd_frame_skip(self, frame_skip: int):
+        if self._session is not None and hasattr(self._session, "frame_skip"):
+            self._session.frame_skip = max(0, int(frame_skip))
 
     def _cmd_stop(self, _arg):
         if self._session is not None:
@@ -244,7 +252,7 @@ class Player:
         self._params = params
         self._session = AnalysisSession(
             self._detectors[key], params.lane_coords, params.lane_length_m, params.confidence, params.start_sec,
-            run_id=params.run_id, frame_skip=params.frame_skip,
+            run_id=params.run_id, frame_skip=params.frame_skip, legacy=params.legacy,
         )
         self._loader.seek(self._clamp(params.start_sec))
         self._reset_clock()

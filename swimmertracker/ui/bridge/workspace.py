@@ -19,10 +19,12 @@ from swimmertracker.video.loader import VideoInfo
 MIN_RANGE_S = 0.1
 DEFAULT_CONFIDENCE = 0.4
 DEFAULT_FRAME_SKIP = 0
+DEFAULT_LEGACY_PIPELINE = False
 RUNNING_STATES = ("loading", "analyzing", "paused")
 MODEL_KEY = "workspace/model"
 CONFIDENCE_KEY = "workspace/confidence"
 FRAME_SKIP_KEY = "workspace/frame_skip"
+LEGACY_PIPELINE_KEY = "workspace/legacy_pipeline"
 
 
 class WorkspaceController(QObject):
@@ -73,6 +75,7 @@ class WorkspaceController(QObject):
         self._model_name = ""
         self._confidence = DEFAULT_CONFIDENCE
         self._frame_skip = DEFAULT_FRAME_SKIP
+        self._legacy_pipeline = DEFAULT_LEGACY_PIPELINE
         self._lane_id = -1
         self._load_defaults()
 
@@ -103,6 +106,7 @@ class WorkspaceController(QObject):
     modelName = ro(str, "_model_name", settingsChanged)
     confidence = ro(float, "_confidence", settingsChanged)
     frameSkip = ro(int, "_frame_skip", settingsChanged)
+    legacyPipeline = ro(bool, "_legacy_pipeline", settingsChanged)
     laneId = ro(int, "_lane_id", settingsChanged)
 
     speed = ro(float, "_speed", telemetryChanged)
@@ -124,7 +128,7 @@ class WorkspaceController(QObject):
 
     def _settings(self) -> tuple:
         return (self._lane_id, self._model_name, round(self._confidence, 3), self._frame_skip,
-                round(self._range_start, 3), round(self._range_end, 3))
+                self._legacy_pipeline, round(self._range_start, 3), round(self._range_end, 3))
 
     def _dirty(self) -> bool:
         return self._active is not None and self._state in RUNNING_STATES + ("finished",) \
@@ -150,10 +154,15 @@ class WorkspaceController(QObject):
             self._frame_skip = int(self._store.value(FRAME_SKIP_KEY, DEFAULT_FRAME_SKIP))
         except (TypeError, ValueError):
             self._frame_skip = DEFAULT_FRAME_SKIP
+        stored_legacy = self._store.value(LEGACY_PIPELINE_KEY, DEFAULT_LEGACY_PIPELINE)
+        self._legacy_pipeline = str(stored_legacy).lower() in ("true", "1") if isinstance(stored_legacy, (str, int)) else bool(stored_legacy)
         self._refresh_models()
 
     def _refresh_models(self):
-        available = list_models(self.models_dir)
+        target_type = "lane_warp" if self._legacy_pipeline else "full_frame"
+        available = list_models(self.models_dir, input_type=target_type)
+        if not available:
+            available = list_models(self.models_dir)
         self._models = [m.name for m in available]
         self._model_labels = [m.display_name for m in available]
         self._model_paths = {m.name: m.path for m in available}
@@ -421,6 +430,20 @@ class WorkspaceController(QObject):
         if value != self._frame_skip:
             self._frame_skip = value
             self._store.setValue(FRAME_SKIP_KEY, value)
+            self._bridge.player.set_frame_skip(value)
+            if self._active is not None and self._state in RUNNING_STATES:
+                active_list = list(self._active)
+                active_list[3] = value
+                self._active = tuple(active_list)
+            self.settingsChanged.emit()
+
+    @Slot(bool)
+    def setLegacyPipeline(self, value: bool):
+        value = bool(value)
+        if value != self._legacy_pipeline:
+            self._legacy_pipeline = value
+            self._store.setValue(LEGACY_PIPELINE_KEY, value)
+            self._refresh_models()
             self.settingsChanged.emit()
 
     # ---- analysis ----------------------------------------------------------------------
@@ -446,6 +469,7 @@ class WorkspaceController(QObject):
             confidence=self._confidence,
             run_id=self._run_id,
             frame_skip=self._frame_skip,
+            legacy=self._legacy_pipeline,
         )
         self._bridge.player.set_preview_lane(lane.coordinates)
         self._bridge.player.start_analysis(params)
