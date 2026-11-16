@@ -9,7 +9,7 @@ from swimmertracker.detection.onnx_detector import OnnxDetector
 
 def check_models(models_dir: Path) -> list:
     results = []
-    for model in list_models(models_dir):
+    for model in list_models(models_dir, input_type=None):
         try:
             detector = OnnxDetector(model.path)
             detector.detect(np.zeros((*detector.input_size, 3), np.uint8))
