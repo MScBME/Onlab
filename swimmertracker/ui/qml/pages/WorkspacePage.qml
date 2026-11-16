@@ -146,6 +146,21 @@ Page {
                     }
 
                     Rectangle {
+                        readonly property bool shown: workspace.bbox.length === 4 && original.hasContent
+                        readonly property point a: shown ? original.toItem(workspace.bbox[0], workspace.bbox[1]) : Qt.point(0, 0)
+                        readonly property point b: shown ? original.toItem(workspace.bbox[2], workspace.bbox[3]) : Qt.point(0, 0)
+                        visible: shown
+                        x: a.x
+                        y: a.y
+                        width: b.x - a.x
+                        height: b.y - a.y
+                        color: "transparent"
+                        radius: 2
+                        border.color: Theme.success
+                        border.width: 2
+                    }
+
+                    Rectangle {
                         readonly property bool shown: workspace.swimmerPoint.length === 2 && original.hasContent
                         readonly property point p: shown ? original.toItem(workspace.swimmerPoint[0], workspace.swimmerPoint[1]) : Qt.point(0, 0)
                         visible: shown
@@ -181,9 +196,9 @@ Page {
                         onSinkReady: (sink) => workspace.setWarpedSink(sink)
 
                         Rectangle {
-                            readonly property bool shown: workspace.bbox.length === 4 && warped.hasContent
-                            readonly property point a: shown ? warped.toItem(workspace.bbox[0], workspace.bbox[1]) : Qt.point(0, 0)
-                            readonly property point b: shown ? warped.toItem(workspace.bbox[2], workspace.bbox[3]) : Qt.point(0, 0)
+                            readonly property bool shown: workspace.warpedBbox.length === 4 && warped.hasContent
+                            readonly property point a: shown ? warped.toItem(workspace.warpedBbox[0], workspace.warpedBbox[1]) : Qt.point(0, 0)
+                            readonly property point b: shown ? warped.toItem(workspace.warpedBbox[2], workspace.warpedBbox[3]) : Qt.point(0, 0)
                             visible: shown
                             x: a.x
                             y: a.y
@@ -387,6 +402,19 @@ Page {
                         columnSpacing: 10
                         rowSpacing: 8
 
+                        Label { text: "Pipeline"; color: Theme.textDim }
+                        ComboBox {
+                            id: pipelineBox
+                            Layout.fillWidth: true
+                            model: ["New (full frame)", "Legacy (lane warp)"]
+                            onActivated: (i) => workspace.setLegacyPipeline(i === 1)
+                            Binding {
+                                target: pipelineBox
+                                property: "currentIndex"
+                                value: workspace.legacyPipeline ? 1 : 0
+                            }
+                        }
+
                         Label { text: "Lane"; color: Theme.textDim }
                         ComboBox {
                             id: laneBox
@@ -435,6 +463,24 @@ Page {
                                 text: workspace.confidence.toFixed(2)
                                 color: Theme.text
                                 font.family: Theme.mono
+                            }
+                        }
+
+                        Label {
+                            text: "Frame skip"
+                            color: workspace.legacyPipeline ? Theme.textFaint : Theme.textDim
+                        }
+                        ComboBox {
+                            id: skipBox
+                            Layout.fillWidth: true
+                            enabled: !workspace.legacyPipeline
+                            opacity: workspace.legacyPipeline ? 0.5 : 1.0
+                            model: ["None (every frame)", "Skip 1 frame", "Skip 2 frames", "Skip 3 frames"]
+                            onActivated: (i) => workspace.setFrameSkip(i)
+                            Binding {
+                                target: skipBox
+                                property: "currentIndex"
+                                value: workspace.frameSkip
                             }
                         }
                     }

@@ -1,8 +1,8 @@
 """ONNX export of a trained model for the app, the last step of train-model.
 
-The ONNX input has the fixed shape that ultralytics itself predicts at for a 256x1024 warped lane. For models
-trained with imgsz=1024 this is exactly 1024x256 in H x W order without letterbox padding, so the ONNX model
-gives the same output in the app as the .pt model.
+Supports both legacy lane-warp models (256x1024 warped lanes) and full-frame models
+(square ``imgsz`` aligned to YOLO stride 32), exporting static shapes without extra
+letterbox mismatch so the ONNX model matches PyTorch validation output.
 """
 import hashlib
 import math
@@ -33,23 +33,32 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _resolve_export_imgsz(input_cfg: dict, train_imgsz: int) -> tuple[int, int]:
+    input_type = input_cfg.get("type", "lane_warp")
+    if input_type == "lane_warp":
+        return predict_shape(train_imgsz, input_cfg["width"], input_cfg["height"])
+    if input_type == "full_frame":
+        size = int(input_cfg.get("imgsz") or train_imgsz)
+        aligned = math.ceil(size / STRIDE) * STRIDE
+        return aligned, aligned
+    raise ValueError(f"Unsupported model input type for ONNX export: {input_type}")
+
+
 def export_onnx(pt_path: Path) -> Path:
     """Export the .pt model to the .onnx file next to it and record the export in the model metadata."""
     pt_path = Path(pt_path)
-    lane_input = load_metadata(pt_path).get("input", LANE_WARP_INPUT)
-    if lane_input.get("type") != "lane_warp":
-        raise ValueError(f"Only lane_warp models can be exported for the app so far, {pt_path.name} is not one")
+    input_cfg = load_metadata(pt_path).get("input", LANE_WARP_INPUT)
 
     model = YOLO(str(pt_path))
     train_imgsz = int(model.overrides.get("imgsz") or 640)
-    imgsz = predict_shape(train_imgsz, lane_input["width"], lane_input["height"])
+    imgsz = _resolve_export_imgsz(input_cfg, train_imgsz)
     onnx_path = Path(model.export(format="onnx", imgsz=imgsz, dynamic=False, simplify=True, device="cpu",
                                   verbose=False))
 
     session = ort.InferenceSession(str(onnx_path), providers=["CPUExecutionProvider"])
     update_metadata(
         pt_path,
-        input=lane_input,
+        input=input_cfg,
         classes=list(model.names.values()),
         onnx={
             "file": onnx_path.name,

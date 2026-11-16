@@ -3,9 +3,7 @@ import random
 import pytest
 
 from research.paths import TEST_LIBRARY, TRAIN_LIBRARY
-from research.training import lane_processor
 from swimmertracker.utils.config import read_json
-from swimmertracker.video import lane_warp
 from swimmertracker.video.lane_warp import normalize_corners, validate_corners
 
 EXISTING_LANES = [
@@ -42,9 +40,3 @@ def test_wrong_point_count():
     with pytest.raises(ValueError):
         normalize_corners([[0, 0], [1, 1], [2, 2]])
     assert validate_corners([[0, 0], [1, 1]]) == ["A lane needs exactly 4 corners."]
-
-
-def test_training_pipeline_uses_the_same_warp_constants():
-    assert lane_processor.LANE_W == lane_warp.LANE_W == 256
-    assert lane_processor.LANE_H == lane_warp.LANE_H == 1024
-    assert (lane_processor.DST_PTS == lane_warp.DST_PTS).all()

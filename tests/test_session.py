@@ -1,32 +1,38 @@
+import cv2
 import numpy as np
 import pytest
 
-from swimmertracker.analysis.session import AnalysisSession, DetectionStatus
+from swimmertracker.analysis.session import AnalysisSession, DetectionStatus, lane_overlap
 from swimmertracker.detection.types import Detection
-from swimmertracker.video.lane_warp import LANE_H
+from swimmertracker.video.lane_warp import DST_PTS, LANE_H, LANE_W
 
 LANE = [[0, 774], [90, 724], [1487, 713], [1548, 761]]
+MATRIX_INV = cv2.getPerspectiveTransform(DST_PTS, np.array(LANE, dtype=np.float32))
 
 
-def box(cy, conf=0.9):
-    return Detection(100.0, cy - 20, 156.0, cy + 20, conf)
+def box_at_warped(wy, conf=0.9, half_w=20.0, half_h=10.0):
+    """Build an original-frame Detection centered at (LANE_W / 2, wy) in warped lane coordinates."""
+    ox, oy = cv2.perspectiveTransform(np.array([[[LANE_W / 2, wy]]], dtype=np.float32), MATRIX_INV)[0][0]
+    return Detection(float(ox - half_w), float(oy - half_h), float(ox + half_w), float(oy + half_h), conf)
 
 
 class ScriptedDetector:
-    """Returns detections whose centre y moves along the lane. None means no detection."""
+    """Returns detections whose centre moves along the lane. None means no detection."""
 
     def __init__(self, ys):
         self.ys = list(ys)
         self.confidence = None
+        self.seen_shapes = []
 
-    def detect(self, _warped):
+    def detect(self, frame):
+        self.seen_shapes.append(frame.shape)
         cy = self.ys.pop(0)
-        return [] if cy is None else [box(cy)]
+        return [] if cy is None else [box_at_warped(cy)]
 
 
 def test_statuses_positions_and_summary():
     fps = 30.0
-    # swimmer moves 2 px/frame in warped space, disappears for 3 frames, reappears
+    # swimmer moves 2 px/frame along the warped lane axis, disappears for 3 frames, reappears
     ys = [100 + 2 * i for i in range(30)] + [None] * 3 + [166 + 2 * i for i in range(30)]
     detector = ScriptedDetector(ys)
     session = AnalysisSession(detector, LANE, lane_length_m=25.0, confidence=0.35, start_sec=10.0)
@@ -35,9 +41,13 @@ def test_statuses_positions_and_summary():
     results = [session.process(frame, 10.0 + i / fps) for i in range(len(ys))]
 
     assert detector.confidence == 0.35
+    assert detector.seen_shapes[0] == (1080, 1920, 3)
+    expected_box = box_at_warped(100)
     assert results[0].status == DetectionStatus.DETECTED
-    assert results[0].position_m == pytest.approx(100 * 25.0 / LANE_H)
-    assert results[0].bbox == (100, 80, 156, 120)
+    assert results[0].position_m == pytest.approx(100 * 25.0 / LANE_H, abs=1e-3)
+    assert results[0].bbox == tuple(int(v) for v in expected_box.bbox)
+    assert results[0].warped_bbox is not None and len(results[0].warped_bbox) == 4
+    assert results[0].point == pytest.approx(expected_box.center)
     assert results[0].warped.shape == (LANE_H, 256, 3)
     assert [r.status for r in results[30:33]] == [DetectionStatus.PREDICTED] * 3
     assert all(r.point is not None for r in results)
@@ -63,22 +73,137 @@ def test_searching_before_first_detection_and_short_runs():
 class ManyDetector:
     confidence = None
 
-    def detect(self, _warped):
-        return [box(300, 0.6), box(500, 0.95), box(700, 0.7)]
+    def __init__(self, detections):
+        self.detections = list(detections)
+
+    def detect(self, _frame):
+        return self.detections
 
 
-def test_default_selection_is_the_most_confident_detection():
-    session = AnalysisSession(ManyDetector(), LANE, 25.0, 0.4, start_sec=0.0)
+def test_default_selection_picks_most_overlapping_then_confidence():
+    hull = cv2.convexHull(np.array(LANE, dtype=np.float32))
+    outside = Detection(500.0, 100.0, 560.0, 140.0, 0.99)
+    edge_splash = Detection(500.0, 690.0, 560.0, 740.0, 0.95)  # partially outside top lane border
+    mostly_in = box_at_warped(500, conf=0.70)
+    assert lane_overlap(outside, hull) == 0.0
+    assert 0.0 < lane_overlap(edge_splash, hull) < lane_overlap(mostly_in, hull)
+
+    session = AnalysisSession(ManyDetector([outside, edge_splash, mostly_in]), LANE, 25.0, 0.4, start_sec=0.0)
     result = session.process(np.zeros((1080, 1920, 3), np.uint8), 0.0)
-    assert result.confidence == 0.95
-    assert result.position_m == pytest.approx(500 * 25.0 / LANE_H)
+    assert result.confidence == pytest.approx(0.70)
+    assert result.position_m == pytest.approx(500 * 25.0 / LANE_H, abs=1e-3)
+
+    # Same overlap -> higher confidence wins
+    in_low = box_at_warped(300, conf=0.60, half_w=10.0, half_h=5.0)
+    in_high = box_at_warped(700, conf=0.95, half_w=10.0, half_h=5.0)
+    session2 = AnalysisSession(ManyDetector([outside, in_low, in_high]), LANE, 25.0, 0.4, start_sec=0.0)
+    result2 = session2.process(np.zeros((1080, 1920, 3), np.uint8), 0.0)
+    assert result2.confidence == pytest.approx(0.95)
+    assert result2.position_m == pytest.approx(700 * 25.0 / LANE_H, abs=1e-3)
+
+
+def test_ignores_detections_outside_the_lane():
+    outside = Detection(200.0, 100.0, 260.0, 140.0, 0.99)
+    session = AnalysisSession(ManyDetector([outside]), LANE, 25.0, 0.4, start_sec=0.0)
+    result = session.process(np.zeros((1080, 1920, 3), np.uint8), 0.0)
+    assert result.status == DetectionStatus.SEARCHING
+    assert result.bbox is None and result.point is None
+
+
+def test_neighbor_with_hand_in_lane_is_rejected_in_favor_of_lane_swimmer():
+    # Neighbor swimmer whose center is outside the lane and only a limb overlaps (10%) with high conf (0.98)
+    # vs our swimmer whose center is inside the lane with lower conf (0.55)
+    hull = cv2.convexHull(np.array(LANE, dtype=np.float32))
+    # Lane top edge around y=724-713. Neighbor box at y=660 to 720 (mostly above lane, overlapping ~10%)
+    neighbor_hand = Detection(500.0, 660.0, 560.0, 720.0, 0.98)
+    our_swimmer = box_at_warped(500, conf=0.55)
+
+    session = AnalysisSession(ManyDetector([neighbor_hand, our_swimmer]), LANE, 25.0, 0.4, start_sec=0.0)
+    result = session.process(np.zeros((1080, 1920, 3), np.uint8), 0.0)
+    # Our swimmer inside the lane wins despite lower confidence
+    assert result.confidence == pytest.approx(0.55)
+    assert result.position_m == pytest.approx(500 * 25.0 / LANE_H, abs=1e-3)
 
 
 def test_selection_strategy_is_replaceable():
     def lowest_in_lane(detections):
         return min(detections, key=lambda d: d.center[1], default=None)
 
-    session = AnalysisSession(ManyDetector(), LANE, 25.0, 0.4, start_sec=0.0, select=lowest_in_lane)
+    outside_higher = Detection(500.0, 100.0, 560.0, 140.0, 0.99)
+    in_lane_top = box_at_warped(300, conf=0.6, half_w=10.0, half_h=5.0)
+    in_lane_bot = box_at_warped(700, conf=0.95, half_w=10.0, half_h=5.0)
+    # In original frame image y, select the box with the smaller y coordinate.
+    small_oy = min([in_lane_top, in_lane_bot], key=lambda d: d.center[1])
+    session = AnalysisSession(ManyDetector([outside_higher, in_lane_top, in_lane_bot]), LANE, 25.0, 0.4,
+                              start_sec=0.0, select=lowest_in_lane)
     result = session.process(np.zeros((1080, 1920, 3), np.uint8), 0.0)
-    assert result.confidence == 0.6
-    assert result.position_m == pytest.approx(300 * 25.0 / LANE_H)
+    assert result.confidence == pytest.approx(small_oy.confidence)
+
+
+def test_frame_skip_keeps_searching_until_detected_then_skips():
+    # When searching (kf is None), detector should run every frame even with frame_skip > 0
+    # Once detected, it skips frame_skip frames between detector invocations
+    ys = [None, None, 100, 102]
+    detector = ScriptedDetector(ys)
+    session = AnalysisSession(detector, LANE, lane_length_m=25.0, confidence=0.4, start_sec=0.0, frame_skip=1)
+    frame = np.zeros((1080, 1920, 3), np.uint8)
+
+    # Frame 0: searching (detector runs)
+    r0 = session.process(frame, 0.0)
+    assert r0.status == DetectionStatus.SEARCHING
+    assert len(detector.seen_shapes) == 1
+
+    # Frame 1: still searching (detector runs again because kf is None)
+    r1 = session.process(frame, 0.033)
+    assert r1.status == DetectionStatus.SEARCHING
+    assert len(detector.seen_shapes) == 2
+
+    # Frame 2: first detection (detector runs)
+    r2 = session.process(frame, 0.066)
+    assert r2.status == DetectionStatus.DETECTED
+    assert len(detector.seen_shapes) == 3
+    assert r2.bbox is not None
+    assert r2.warped_bbox is not None
+
+    # Frame 3: skipped (kf is active, frame_skip=1 -> detector is NOT called)
+    r3 = session.process(frame, 0.1)
+    assert r3.status == DetectionStatus.DETECTED
+    assert len(detector.seen_shapes) == 3
+    assert r3.bbox is not None
+    assert r3.warped_bbox is not None
+    assert r3.position_m is not None
+    # Bbox dimensions must remain stable without jumping or resizing
+    assert (r3.bbox[2] - r3.bbox[0]) == (r2.bbox[2] - r2.bbox[0])
+    assert (r3.bbox[3] - r3.bbox[1]) == (r2.bbox[3] - r2.bbox[1])
+
+    # Frame 4: detector runs again
+    r4 = session.process(frame, 0.133)
+    assert r4.status == DetectionStatus.DETECTED
+    assert len(detector.seen_shapes) == 4
+
+
+def test_legacy_session_warps_before_detection():
+    class WarpedMockDetector:
+        confidence = 0.5
+
+        def __init__(self):
+            self.shapes = []
+
+        def detect(self, img):
+            self.shapes.append(img.shape)
+            return [Detection(100.0, 500.0, 150.0, 550.0, 0.85)]
+
+    detector = WarpedMockDetector()
+    session = AnalysisSession(detector, LANE, lane_length_m=25.0, confidence=0.4, start_sec=0.0, legacy=True)
+    frame = np.zeros((1080, 1920, 3), np.uint8)
+    res = session.process(frame, 0.0)
+
+    # In legacy mode, detector receives the warped lane (1024, 256, 3)
+    assert detector.shapes[0] == (LANE_H, LANE_W, 3)
+    assert res.status == DetectionStatus.DETECTED
+    assert res.warped_bbox == (100, 500, 150, 550)
+    assert res.bbox is not None
+    assert res.point is not None
+    assert res.position_m == pytest.approx(525.0 * 25.0 / LANE_H, abs=1e-3)
+
+
