@@ -8,15 +8,15 @@ requires-python = ">=3.14"
 dependencies = [
     "numpy>=2.0",
     "opencv-contrib-python==4.13.0.92",  # the contrib build is one cv2 for everything, the legacy CSRT tracker included
-    "onnxruntime>=1.20",
+    "onnxruntime-directml>=1.20 ; sys_platform == 'win32'",
+    "onnxruntime>=1.20 ; sys_platform != 'win32'",
     "PySide6>=6.11.2,<6.12",
 ]
 
 # Every command of the project
 [project.scripts]
 swimmertracker = "swimmertracker.ui.app:main"           # the desktop app
-train-extract = "research.training.extract:main"        # Pipeline 1: extract frames to annotate
-train-model = "research.training.train:main"            # Pipeline 2: download, split, train, evaluate and export
+train-model = "research.training.train:main"            # full-frame YOLO training on curated datasets
 eval-inference = "research.evaluation.inference:main"   # a model on a clip with the app's pipeline
 eval-pipeline = "research.evaluation.pipeline:main"     # speed signal processing levels on a clip
 eval-onnx = "research.evaluation.onnx_parity:main"      # a .pt model against its ONNX export on a clip

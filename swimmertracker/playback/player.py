@@ -13,7 +13,6 @@ from typing import Optional
 import numpy as np
 
 from swimmertracker.analysis.session import AnalysisParams, AnalysisSession, AnalysisSummary, FrameResult, lane_preview
-from swimmertracker.video.lane_warp import LANE_H, LANE_W
 from swimmertracker.video.loader import VideoInfo, VideoLoader
 
 LAG_RESYNC_S = 0.25  # if playback falls this far behind real time, re-anchor instead of rushing
@@ -89,6 +88,9 @@ class Player:
     def start_analysis(self, params: AnalysisParams):
         self._post("start", params)
 
+    def set_frame_skip(self, frame_skip: int):
+        self._post("frame_skip", int(frame_skip))
+
     def stop(self):
         self._post("stop")
 
@@ -116,6 +118,7 @@ class Player:
             "pause": self._cmd_pause,
             "resume": self._cmd_resume,
             "start": self._start,
+            "frame_skip": self._cmd_frame_skip,
             "stop": self._cmd_stop,
             "release": self._cmd_release,
         }
@@ -173,6 +176,10 @@ class Player:
         if self._state == PlayerState.PAUSED:
             self._reset_clock()
             self._set_state(PlayerState.ANALYZING)
+
+    def _cmd_frame_skip(self, frame_skip: int):
+        if self._session is not None and hasattr(self._session, "frame_skip"):
+            self._session.frame_skip = max(0, int(frame_skip))
 
     def _cmd_stop(self, _arg):
         if self._session is not None:
@@ -240,12 +247,12 @@ class Player:
             detector = self._detector_factory(params.model_path)
             # The first inference allocates and optimizes the graph, which can take a moment.
             # Doing it here shows it as loading instead of a frozen analysis.
-            detector.detect(np.zeros((LANE_H, LANE_W, 3), dtype=np.uint8))
+            detector.detect(np.zeros((self._info.height, self._info.width, 3), dtype=np.uint8))
             self._detectors[key] = detector
         self._params = params
         self._session = AnalysisSession(
             self._detectors[key], params.lane_coords, params.lane_length_m, params.confidence, params.start_sec,
-            run_id=params.run_id,
+            run_id=params.run_id, frame_skip=params.frame_skip, legacy=params.legacy,
         )
         self._loader.seek(self._clamp(params.start_sec))
         self._reset_clock()

@@ -42,7 +42,7 @@ def test_list_models_uses_metadata_and_skips_unsupported_inputs(tmp_path):
         (tmp_path / f"{name}.onnx").write_bytes(b"")
     (tmp_path / "swimmer_old.pt").write_bytes(b"")
     (tmp_path / "swimmer_all.json").write_text(json.dumps({"display_name": "All strokes"}))
-    (tmp_path / "frame_model.json").write_text(json.dumps({"input": {"type": "frame"}}))
+    (tmp_path / "frame_model.json").write_text(json.dumps({"input": {"type": "lane_warp"}}))
     (tmp_path / "swimmer_freestyle.json").write_text("{ not json")
 
     models = list_models(tmp_path)
