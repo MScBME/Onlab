@@ -1,6 +1,11 @@
 {
   "models": [
     {
+      "name": "swimmer_fullframe_v2_swimonly",
+      "display_name": "Full frame v2 (swim only)",
+      "description": "Full-frame YOLO model (1024x1024) trained exclusively on swimming phases (mAP50: 93.4%)."
+    },
+    {
       "name": "swimmer_fullframe_v1_1024",
       "display_name": "Full frame 1024",
       "description": "Full-frame YOLO model (1024x1024) for accurate swimmer detection across all lanes."
